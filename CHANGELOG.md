@@ -3,6 +3,19 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.22] - 2026-09-13 - Ripple behind flag (off by default)
+- `FEATURES = { ripple: false }` near top of script + `shouldRipple()` helper (reads `localStorage 'feat-ripple'` override: `'1'`/`'true'` on, else flag; default off); `console.log('[features] ripple off')` when disabled; turn on by setting `FEATURES.ripple = true` or `localStorage feat-ripple=1`.
+- `showSolidNow`: flag off skips ripple restart (`animation='none'`, `display='none'`), keeps together-press thicken + `solid-unblur` fade; flag on restores existing 0.6s ripple animation. All else unchanged: mono, drill nav, paging, validation, thick caret, blur/fade, title-case, hot reload, 24px add-btn.
+
+## [v0.0.21] - 2026-09-13 - Smaller add button
+- `#add-node-btn` 36px -> 24px, font 20px -> 14px, radius 12px -> 8px; mono font-family, darkmode invert kept, aria/title + focus behavior unchanged; bounce stays within 3px; Alt `add-btn` badge follows new size (rect-based).
+
+## [v0.0.20] - 2026-09-13 - Child nodes + drill-in
+- Tree store: node `{id, word, parentId (null = root), createdAt, order}`; `order` global insertion order, siblings derive by filtering on `parentId`; edges parent->child only; persist `{version: 2, nodes, edges, order}` in `root-graph-json` (v1 flat migrates to `parentId=null`, dangling refs nulled, parent edges rebuilt).
+- `Graph.getChildren/count/pathTo`, cascade `removeNode` (deletes descendants), per-level `pruneEmptiesToOne`/`ensureLevelHasNode` (each level keeps max 1 empty, auto one waiting input when empty).
+- UI drill: solid nodes show mono `›` `.open-btn`; click drills (`navigateTo`), `#back-btn` to parent, `#crumbs` (`Root / Parent / ...`, `crumb-i` buttons) + `#level-title` parent word + count; same flow per level (input/solid, title-case, thick caret, blur/fade, ripple, `isValidWord` shake, paging 3/last-4, bouncing `+` adds child).
+- Context: placeholder `Add to Parent...`, `#status`/`+` aria/title include parent word, Alt peek adds `back-btn`, `level-title`, `crumb-i`, `open-node-i`.
+
 ## [v0.0.19] - 2026-09-13 - Block empty root nodes
 - `isValidWord(word)`: trimmed length 1..60 (`MAX_WORD_LEN = 60`); wired to Enter, blur, and `+` add button.
 - Solidify (Enter/blur): empty or over-long input is rejected — `inputShake` 0.3s (via `translate`, no fight with grow scale), `#status` hint (`Type a word first` / `Keep it under 60 chars`), input stays focused; no solid, no graph write.

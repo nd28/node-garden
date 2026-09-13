@@ -1,4 +1,4 @@
-<!-- button-app v0.0.19 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.22 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -137,6 +137,7 @@
     position: relative;
     align-items: center;
     justify-content: center;
+    gap: 10px;
     min-width: 200px;
     min-height: 80px;
   }
@@ -216,21 +217,107 @@
   }
   .pager-btn:hover { background: #222; }
   .pager-btn:active { transform: scale(0.94); }
-  /* Add-node button: ~36px, rounded 12px, "+" text, random bounce via JS. Mono only. */
+  /* Add-node button: ~24px, rounded 8px, "+" text, random bounce via JS. Mono only. */
   #add-node-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
     border: 1px solid #000;
     background: #000;
     color: #fff;
-    font-size: 20px;
+    font-size: 14px;
     line-height: 1;
     cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     transition: transform 0.7s ease, background 0.15s ease;
   }
   #add-node-btn:hover { background: #222; }
   #add-node-btn:active { transform: scale(0.94); }
+  /* Drill nav: back + crumbs + level title. Mono only. */
+  #nav-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    max-width: 92vw;
+  }
+  #back-btn {
+    width: auto;
+    min-width: 36px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 10px;
+    border: 1px solid #000;
+    background: #000;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #back-btn:hover { background: #222; }
+  #back-btn:active { transform: scale(0.94); }
+  #crumbs {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 92vw;
+  }
+  .crumb-btn {
+    padding: 2px 8px;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: transparent;
+    color: #000;
+    font-size: 12px;
+    line-height: 1.4;
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .crumb-btn:hover { background: #000; color: #fff; }
+  .crumb-btn.current {
+    font-weight: 800;
+    cursor: default;
+    background: #000;
+    color: #fff;
+  }
+  .crumb-sep { opacity: 0.45; font-size: 12px; }
+  #level-title {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    opacity: 0.8;
+    max-width: 92vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* Open-child affordance: small mono › pill next to solid text. */
+  .open-btn {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: #000;
+    color: #fff;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .open-btn:hover { background: #222; }
+  .open-btn:active { transform: scale(0.94); }
   #status { position: fixed; bottom: 24px; color: #555; }
   #version { position: fixed; bottom: 8px; right: 12px; font-size: 11px; color: #888; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
   #version a { color: inherit; text-decoration: none; font-family: inherit; }
@@ -283,6 +370,13 @@
     .pager-btn:hover { background: #ddd; }
     #add-node-btn { background: #fff; color: #000; border-color: #fff; }
     #add-node-btn:hover { background: #ddd; }
+    #back-btn { background: #fff; color: #000; border-color: #fff; }
+    #back-btn:hover { background: #ddd; }
+    .crumb-btn { border-color: #fff; color: #fff; }
+    .crumb-btn:hover { background: #fff; color: #000; }
+    .crumb-btn.current { background: #fff; color: #000; }
+    .open-btn { background: #fff; color: #000; border-color: #fff; }
+    .open-btn:hover { background: #ddd; }
     #status { color: #999; }
     #version { color: #888; }
     .id-badge { background: #fff; color: #000; border-color: #fff; }
@@ -294,6 +388,11 @@
 <body>
   <button id="round-btn" style="display:none">Write</button>
   <div id="stage">
+    <div id="nav-bar">
+      <button id="back-btn" aria-label="Back to parent" title="Back to parent" style="display:none">&larr; Back</button>
+      <nav id="crumbs" aria-label="Breadcrumb"></nav>
+      <div id="level-title" aria-live="polite"></div>
+    </div>
     <button id="page-up" class="pager-btn" aria-label="Previous page" style="display:none">&#9650;</button>
     <div id="nodes" aria-live="polite"></div>
     <button id="page-down" class="pager-btn" aria-label="Next page" style="display:none">&#9660;</button>
@@ -301,7 +400,7 @@
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.19</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.22</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -313,6 +412,18 @@
     const LS_GRAPH = 'root-graph-json';
     const LS_NEW = 'root-nodes-json';
     const LS_OLD = 'root-node-word';
+
+    // Feature flags (v0.0.22): toggle experiments here. Ripple is OFF by default.
+    // Override via localStorage: localStorage.setItem('feat-ripple', '1') to force on, '0' to force off.
+    const FEATURES = { ripple: false };
+    function shouldRipple() {
+      try {
+        const v = localStorage.getItem('feat-ripple');
+        if (v !== null) return v === '1' || v === 'true';
+      } catch (_) {}
+      return !!FEATURES.ripple;
+    }
+    if (!shouldRipple()) console.log('[features] ripple off');
 
     function toTitleCase(s) {
       return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
@@ -335,7 +446,8 @@
     function rejectEmpty(input) {
       shakeInput(input);
       try { input.focus(); } catch (_) {}
-      status.textContent = 'Type a word first';
+      const pw = parentWord();
+      status.textContent = 'Type a word first' + (pw ? ' in ' + pw : '');
       requestAnimationFrame(updateCaret);
     }
     function rejectTooLong(input) {
@@ -349,10 +461,13 @@
       return 'n-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
     }
 
-    // Graph DSA for root-node persistence.
-    // nodes: Map<id, {id, word, createdAt, order}>, adj: Map<id, Set<id>>,
-    // order: [id] insertion order driving paging. Edges are linear chain
-    // (prev -> next) for now; addEdge() is ready for future links.
+    // Tree Graph store (v0.0.20, v2 JSON): each node
+    // {id, word, parentId (null = root), createdAt, order}.
+    // order: [id] global insertion order; sibling order derives from
+    // filtering order by parentId. Edges are parent->child only.
+    // Persisted as {version: 2, nodes, edges, order}; v1 flat files
+    // (no parentId, linear chain edges) migrate to parentId=null.
+    const GRAPH_VERSION = 2;
     class Graph {
       constructor() {
         this.nodes = new Map();
@@ -360,13 +475,15 @@
         this.order = [];
       }
       get size() { return this.order.length; }
-      addNode(word) {
+      addNode(word, parentId) {
         const w = word || '';
+        const pid = (parentId !== undefined && parentId !== null && this.nodes.has(parentId))
+          ? parentId : null;
         const id = newNodeId();
-        const node = { id, word: w, createdAt: Date.now(), order: this.order.length };
+        const node = { id, word: w, parentId: pid, createdAt: Date.now(), order: this.order.length };
         this.nodes.set(id, node);
         this.adj.set(id, new Set());
-        if (this.order.length > 0) this.addEdge(this.order[this.order.length - 1], id);
+        if (pid) this.addEdge(pid, id);
         this.order.push(id);
         return id;
       }
@@ -377,14 +494,26 @@
       }
       removeNode(id) {
         if (!this.nodes.has(id)) return false;
-        const pos = this.order.indexOf(id);
-        const prev = pos > 0 ? this.order[pos - 1] : null;
-        const next = (pos !== -1 && pos < this.order.length - 1) ? this.order[pos + 1] : null;
-        this.nodes.delete(id);
-        this.adj.delete(id);
-        for (const set of this.adj.values()) set.delete(id);
-        if (pos !== -1) this.order.splice(pos, 1);
-        if (prev && next) this.addEdge(prev, next);
+        // Cascade: collect id + all descendants via parentId links.
+        const doomed = new Set([id]);
+        let grew = true;
+        while (grew) {
+          grew = false;
+          for (const [nid, n] of this.nodes) {
+            if (!doomed.has(nid) && n.parentId && doomed.has(n.parentId)) {
+              doomed.add(nid);
+              grew = true;
+            }
+          }
+        }
+        for (const d of doomed) {
+          this.nodes.delete(d);
+          this.adj.delete(d);
+        }
+        for (const set of this.adj.values()) {
+          for (const d of doomed) set.delete(d);
+        }
+        this.order = this.order.filter((x) => !doomed.has(x));
         for (let i = 0; i < this.order.length; i++) {
           const n = this.nodes.get(this.order[i]);
           if (n) n.order = i;
@@ -400,6 +529,32 @@
         }
         return out;
       }
+      // Siblings in stable insertion order for one parent level.
+      getChildren(parentId) {
+        const pid = parentId || null;
+        const out = [];
+        for (const id of this.order) {
+          const n = this.nodes.get(id);
+          if (n && (n.parentId || null) === pid) out.push(n);
+        }
+        return out;
+      }
+      childCount(parentId) { return this.getChildren(parentId).length; }
+      // Ancestor chain root->...->parent of id (excludes id itself).
+      pathTo(id) {
+        const chain = [];
+        const seen = new Set();
+        let cur = id ? this.getNode(id) : null;
+        cur = cur ? this.getNode(cur.parentId) : null;
+        const rev = [];
+        while (cur && !seen.has(cur.id)) {
+          seen.add(cur.id);
+          rev.push(cur);
+          cur = cur.parentId ? this.getNode(cur.parentId) : null;
+        }
+        for (let i = rev.length - 1; i >= 0; i--) chain.push(rev[i]);
+        return chain;
+      }
       addEdge(fromId, toId) {
         if (!this.nodes.has(fromId) || !this.nodes.has(toId)) return;
         if (!this.adj.has(fromId)) this.adj.set(fromId, new Set());
@@ -413,10 +568,11 @@
         return edges;
       }
       toJSON() {
-        return { nodes: [...this.nodes.values()], edges: this.getEdges(), order: [...this.order] };
+        return { version: GRAPH_VERSION, nodes: [...this.nodes.values()], edges: this.getEdges(), order: [...this.order] };
       }
       static fromJSON(obj) {
         if (!obj || !Array.isArray(obj.nodes) || !Array.isArray(obj.order)) return null;
+        const isV2 = obj.version === 2 || obj.nodes.some((n) => n && Object.prototype.hasOwnProperty.call(n, 'parentId'));
         const g = new Graph();
         const byId = new Map();
         for (const n of obj.nodes) {
@@ -428,9 +584,11 @@
           const id = obj.order[i];
           const n = byId.get(id);
           if (!n) continue;
+          const rawPid = (isV2 && typeof n.parentId === 'string') ? n.parentId : null;
           g.nodes.set(id, {
             id,
             word: String(n.word || ''),
+            parentId: rawPid,
             createdAt: Number(n.createdAt) || Date.now(),
             order: g.order.length,
           });
@@ -438,27 +596,51 @@
           g.order.push(id);
         }
         if (g.order.length === 0) return null;
-        if (Array.isArray(obj.edges)) {
+        // Drop dangling parent refs (flat v1 -> null).
+        for (const n of g.nodes.values()) {
+          if (n.parentId && !g.nodes.has(n.parentId)) n.parentId = null;
+        }
+        if (isV2 && Array.isArray(obj.edges)) {
           for (const e of obj.edges) {
             const f = e && (e.from !== undefined ? e.from : e[0]);
             const t = e && (e.to !== undefined ? e.to : e[1]);
             if (typeof f === 'string' && typeof t === 'string') g.addEdge(f, t);
           }
         }
-        // Ensure linear chain edges exist for current order.
-        for (let i = 1; i < g.order.length; i++) g.addEdge(g.order[i - 1], g.order[i]);
+        // Ensure every non-root has its parent->child edge.
+        for (const n of g.nodes.values()) {
+          if (n.parentId) g.addEdge(n.parentId, n.id);
+        }
         return g;
       }
     }
 
     let graph = new Graph();
     let page = 0;
+    // Drill state: null = roots, else node id whose children are shown.
+    let currentParentId = null;
 
-    // Store helpers used by render/paging/add/edit.
-    function getOrderedNodes() { return graph.getOrderedNodes(); }
-    function addNode(word) { return graph.addNode(word); }
+    // Store helpers used by render/paging/add/edit (all per current level).
+    function getOrderedNodes() { return graph.getChildren(currentParentId); }
+    function currentList() { return graph.getChildren(currentParentId); }
+    function currentSize() { return graph.childCount(currentParentId); }
+    function getParentNode() { return currentParentId ? graph.getNode(currentParentId) : null; }
+    function parentWord() {
+      const p = getParentNode();
+      return p ? (p.word || '').trim() : '';
+    }
+    function crumbPath() {
+      if (!currentParentId) return [];
+      const p = graph.getNode(currentParentId);
+      if (!p) return [];
+      return [...graph.pathTo(currentParentId), p];
+    }
+    function addNode(word) { return graph.addNode(word, currentParentId); }
     function updateNode(id, word) { return graph.updateNode(id, word); }
-    function nodeIdAt(idx) { return graph.order[idx]; }
+    function nodeIdAt(idx) {
+      const list = currentList();
+      return list[idx] ? list[idx].id : undefined;
+    }
     function getWordAt(idx) {
       const n = graph.getNode(nodeIdAt(idx));
       return n ? n.word : '';
@@ -471,43 +653,60 @@
       try { localStorage.setItem(LS_GRAPH, JSON.stringify(graph.toJSON())); } catch (_) {}
     }
     function saveNodes() { saveGraph(); }
-    // Prune empty waiting nodes down to max 1 (keep first empty in order).
-    // Ensures at least 1 node exists so the user can always type.
+    // Prune empty waiting nodes per parent level down to max 1 empty.
+    // Ensures roots have >=1 node so the user can always type.
     function pruneEmptiesToOne() {
       const ordered = graph.getOrderedNodes();
-      let keptEmpty = false;
-      let changed = false;
+      const byParent = new Map();
       for (const n of ordered) {
-        if (!(n.word || '').trim()) {
-          if (!keptEmpty) keptEmpty = true;
-          else { graph.removeNode(n.id); changed = true; }
+        const k = n.parentId || '\0roots';
+        if (!byParent.has(k)) byParent.set(k, []);
+        byParent.get(k).push(n);
+      }
+      let changed = false;
+      for (const group of byParent.values()) {
+        let keptEmpty = false;
+        for (const n of group) {
+          if (!(n.word || '').trim()) {
+            if (!keptEmpty) keptEmpty = true;
+            else { graph.removeNode(n.id); changed = true; }
+          }
         }
       }
-      if (graph.size === 0) { graph.addNode(''); changed = true; }
+      if (graph.childCount(null) === 0) { graph.addNode('', null); changed = true; }
       if (changed) saveGraph();
       return changed;
     }
+    // Ensure a level shows at least one waiting input when empty.
+    function ensureLevelHasNode(parentId) {
+      if (graph.childCount(parentId || null) === 0) {
+        graph.addNode('', parentId || null);
+        saveGraph();
+        return true;
+      }
+      return false;
+    }
     // Remove a single empty node by id (blur/Enter with empty trim).
-    // Keeps it if it is the only node; otherwise removes + re-renders.
+    // Keeps it if it is the only node in its level; otherwise removes.
     function pruneEmptyNodeById(id) {
       const n = id ? graph.getNode(id) : null;
       if (!n) return false;
       if ((n.word || '').trim()) return false;
-      // Synced: current input value is already trimmed-empty; ensure stored empty.
-      if (graph.size <= 1) {
+      const sibs = graph.childCount(n.parentId || null);
+      if (sibs <= 1) {
         graph.updateNode(id, '');
         saveGraph();
         updateStatus();
         return false;
       }
+      const wasCurrentLevel = (n.parentId || null) === (currentParentId || null);
       graph.removeNode(id);
       saveGraph();
-      clampPage();
-      render();
+      if (wasCurrentLevel) { clampPage(); render(); }
       return true;
     }
     function loadGraph() {
-      // Prefer graph key.
+      // Prefer graph key (v2 tree or v1 flat -> migrated).
       try {
         const raw = localStorage.getItem(LS_GRAPH);
         if (raw !== null) {
@@ -515,7 +714,7 @@
           if (g) { graph = g; return; }
         }
       } catch (_) {}
-      // Migrate legacy list key 'root-nodes-json'.
+      // Migrate legacy list key 'root-nodes-json' -> roots.
       try {
         const raw = localStorage.getItem(LS_NEW);
         if (raw !== null) {
@@ -523,8 +722,8 @@
           if (Array.isArray(arr)) {
             const g = new Graph();
             const words = arr.map((x) => toTitleCase(String(x || '').trim()));
-            for (const w of words) g.addNode(w);
-            if (g.size === 0) g.addNode('');
+            for (const w of words) g.addNode(w, null);
+            if (g.childCount(null) === 0) g.addNode('', null);
             graph = g;
             saveGraph();
             return;
@@ -537,7 +736,7 @@
         if (old !== null) {
           const g = new Graph();
           const w = toTitleCase((old || '').trim());
-          g.addNode(w || '');
+          g.addNode(w || '', null);
           graph = g;
           saveGraph();
           try { localStorage.removeItem(LS_OLD); } catch (_) {}
@@ -545,9 +744,13 @@
         }
       } catch (_) {}
       graph = new Graph();
-      graph.addNode('');
+      graph.addNode('', null);
     }
-    function loadNodes() { loadGraph(); pruneEmptiesToOne(); }
+    function loadNodes() {
+      loadGraph();
+      if (currentParentId && !graph.getNode(currentParentId)) currentParentId = null;
+      pruneEmptiesToOne();
+    }
 
     // Paging: pages of 3, but if total<=4 show all (adjust layout to fit 4).
     // If total>=5: chunk 3 while remaining>4, last chunk takes remainder
@@ -577,7 +780,7 @@
       return pages;
     }
     function clampPage() {
-      const pages = computePages(graph.size);
+      const pages = computePages(currentSize());
       if (page < 0) page = 0;
       if (page > pages.length - 1) page = pages.length - 1;
       return pages;
@@ -623,25 +826,120 @@
       setTimeout(() => requestAnimationFrame(updateCaret), 320);
     }
 
+    const backBtn = document.getElementById('back-btn');
+    const crumbsEl = document.getElementById('crumbs');
+    const levelTitle = document.getElementById('level-title');
+
     function updateStatus() {
-      const pages = computePages(graph.size);
+      const pages = computePages(currentSize());
       const vis = pages[page] || [];
       const anyEmpty = vis.some((i) => !(getWordAt(i) || '').trim());
       const editing = document.activeElement &&
         document.activeElement.classList &&
         document.activeElement.classList.contains('root-input');
+      const pw = parentWord();
+      const inCtx = pw ? ' in ' + pw : '';
+      const inPrefix = pw ? 'In ' + pw + ': ' : '';
       if (editing) {
-        status.textContent = 'Editing... press Enter';
+        status.textContent = 'Editing' + inCtx + '... press Enter';
       } else if (anyEmpty) {
-        status.textContent = 'Waiting for writing... press Enter';
+        status.textContent = 'Waiting for writing' + inCtx + '... press Enter';
       } else {
-        status.textContent = 'Click text to edit';
+        status.textContent = inPrefix + 'Click text to edit';
+      }
+    }
+
+    // Drill navigation: currentParentId=null shows roots.
+    function navigateTo(parentId) {
+      const pid = parentId || null;
+      if (pid && !graph.getNode(pid)) return;
+      currentParentId = pid;
+      page = 0;
+      ensureLevelHasNode(currentParentId);
+      saveGraph();
+      render('first-empty-visible');
+      requestAnimationFrame(() => {
+        const emptyEl = [...nodesEl.querySelectorAll('.root-node')].find((el) => {
+          const i = Number(el.dataset.idx);
+          return !(getWordAt(i) || '').trim();
+        });
+        if (emptyEl) {
+          const input = emptyEl.querySelector('.root-input');
+          if (input) { input.focus(); hideCaretDelayed(); }
+        }
+        updateStatus();
+      });
+    }
+    function goBack() {
+      const p = getParentNode();
+      navigateTo(p ? (p.parentId || null) : null);
+    }
+
+    function updateNav() {
+      const p = getParentNode();
+      const list = currentList();
+      const n = list.length;
+      // Back button + header (parent word + count).
+      backBtn.style.display = p ? '' : 'none';
+      if (p) {
+        const pw = (p.word || '').trim() || '(empty)';
+        levelTitle.textContent = pw + ' (' + n + (n === 1 ? ' child)' : ' children)');
+      } else {
+        levelTitle.textContent = n ? 'Root (' + n + (n === 1 ? ' node)' : ' nodes)') : 'Root';
+      }
+      // Breadcrumb: Root / ... / Current.
+      crumbsEl.innerHTML = '';
+      const mkCrumb = (label, targetId, isCurrent, crumbIdx) => {
+        const b = document.createElement('button');
+        b.className = 'crumb-btn' + (isCurrent ? ' current' : '');
+        b.type = 'button';
+        b.textContent = label;
+        b.dataset.crumb = String(crumbIdx);
+        if (isCurrent) {
+          b.disabled = true;
+          b.setAttribute('aria-current', 'page');
+        } else {
+          b.title = targetId ? 'Open ' + label : 'Back to roots';
+          b.setAttribute('aria-label', targetId ? 'Open ' + label : 'Back to roots');
+          b.addEventListener('click', () => navigateTo(targetId));
+        }
+        return b;
+      };
+      const mkSep = () => {
+        const s = document.createElement('span');
+        s.className = 'crumb-sep';
+        s.textContent = '/';
+        return s;
+      };
+      if (!p) {
+        crumbsEl.appendChild(mkCrumb('Root', null, true, 0));
+      } else {
+        const chain = crumbPath(); // [...ancestors, current]
+        crumbsEl.appendChild(mkCrumb('Root', null, false, 0));
+        crumbsEl.appendChild(mkSep());
+        chain.forEach((node, k) => {
+          const isCur = k === chain.length - 1;
+          const label = (node.word || '').trim() || '(empty)';
+          crumbsEl.appendChild(mkCrumb(label, node.id, isCur, k + 1));
+          if (!isCur) crumbsEl.appendChild(mkSep());
+        });
+      }
+      // Contextual add button + placeholder hint.
+      const pw2 = parentWord();
+      if (p) {
+        addBtn.setAttribute('aria-label', 'Add child to ' + (pw2 || 'parent'));
+        addBtn.title = 'Add to ' + (pw2 || 'parent');
+      } else {
+        addBtn.setAttribute('aria-label', 'Add root node');
+        addBtn.title = 'Add root node';
       }
     }
 
     function showInput(nodeEl, fromEdit) {
       const input = nodeEl.querySelector('.root-input');
       const wrap = nodeEl.querySelector('.solid-wrap');
+      const openBtn = nodeEl.querySelector('.open-btn');
+      if (openBtn) openBtn.style.display = 'none';
       wrap.classList.remove('show');
       if (fromEdit) {
         input.classList.remove('show');
@@ -688,6 +986,7 @@
       const wrap = nodeEl.querySelector('.solid-wrap');
       const solid = nodeEl.querySelector('.solid-text');
       const ripple = nodeEl.querySelector('.ripple');
+      const openBtn = nodeEl.querySelector('.open-btn');
       fakeCaret.classList.remove('on');
       input.classList.remove('show');
       input.classList.remove('edit-pop');
@@ -706,18 +1005,31 @@
       solid.classList.remove('blur-out');
       solid.classList.remove('solid-unblur');
       wrap.classList.remove('show');
+      if (openBtn) {
+        openBtn.style.display = '';
+        openBtn.setAttribute('aria-label', 'Open ' + word);
+        openBtn.title = 'Open ' + word;
+      }
       if (animate) {
-        ripple.style.animation = 'none';
-        void ripple.offsetWidth;
-        ripple.style.animation = '';
+        if (shouldRipple()) {
+          ripple.style.display = '';
+          ripple.style.animation = 'none';
+          void ripple.offsetWidth;
+          ripple.style.animation = '';
+        } else {
+          ripple.style.animation = 'none';
+          ripple.style.display = 'none';
+        }
         void wrap.offsetWidth;
         wrap.classList.add('show');
         void solid.offsetWidth;
         solid.classList.add('solid-unblur');
       } else {
         ripple.style.animation = 'none';
+        ripple.style.display = shouldRipple() ? '' : 'none';
         wrap.classList.add('show');
       }
+      updateNav();
       updateStatus();
     }
 
@@ -725,11 +1037,14 @@
       const nodeEl = document.createElement('div');
       nodeEl.className = 'root-node';
       nodeEl.dataset.idx = String(idx);
+      const nid = nodeIdAt(idx);
+      if (nid) nodeEl.dataset.nodeId = nid;
 
+      const pw0 = parentWord();
       const input = document.createElement('input');
       input.className = 'root-input';
       input.type = 'text';
-      input.placeholder = '';
+      input.placeholder = pw0 ? 'Add to ' + pw0 + '...' : '';
       input.autocomplete = 'off';
       input.maxLength = MAX_WORD_LEN;
       input.value = getWordAt(idx) || '';
@@ -742,8 +1057,14 @@
       const solid = document.createElement('div');
       solid.className = 'solid-text';
       solid.title = 'Click to edit';
+      const openBtn = document.createElement('button');
+      openBtn.className = 'open-btn';
+      openBtn.type = 'button';
+      openBtn.textContent = '\u203A';
+      openBtn.style.display = 'none';
       wrap.appendChild(ripple);
       wrap.appendChild(solid);
+      wrap.appendChild(openBtn);
 
       nodeEl.appendChild(input);
       nodeEl.appendChild(wrap);
@@ -781,12 +1102,14 @@
           // Validation blocks empties: shake + hint, keep waiting input
           // focused, do NOT solidify, do NOT touch the graph.
           // Defer focus: blur must finish first or refocus is ignored.
+          const pw = parentWord();
+          const suffix = pw ? ' in ' + pw : '';
           if (!String(raw || '').trim()) {
             shakeInput(input);
-            status.textContent = 'Type a word first';
+            status.textContent = 'Type a word first' + suffix;
             setTimeout(() => {
               try { input.focus(); } catch (_) {}
-              if (document.activeElement === input) status.textContent = 'Type a word first';
+              if (document.activeElement === input) status.textContent = 'Type a word first' + suffix;
             }, 0);
           } else {
             shakeInput(input);
@@ -809,6 +1132,11 @@
           showInput(nodeEl, true);
         }, 250);
       });
+      openBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const target = nodeIdAt(idx);
+        if (target) navigateTo(target);
+      });
 
       // Initial per-node state: empty waits with input, word shows engraved solid.
       const saved = (getWordAt(idx) || '').trim();
@@ -816,11 +1144,14 @@
         const w = toTitleCase(saved);
         setWordAt(idx, w);
         input.value = w;
+        openBtn.setAttribute('aria-label', 'Open ' + w);
+        openBtn.title = 'Open ' + w;
         showSolidNow(nodeEl, idx, w, { animate: false });
       } else {
         setWordAt(idx, '');
         input.value = '';
         wrap.classList.remove('show');
+        openBtn.style.display = 'none';
         input.classList.remove('edit-pop');
         input.classList.remove('fade-blur-out');
         input.classList.add('show');
@@ -829,6 +1160,8 @@
     }
 
     function render(focusIdx) {
+      if (currentParentId && !graph.getNode(currentParentId)) currentParentId = null;
+      ensureLevelHasNode(currentParentId);
       const pages = clampPage();
       const vis = pages[page] || [];
       nodesEl.innerHTML = '';
@@ -838,6 +1171,7 @@
       });
       pageUp.style.display = page > 0 ? '' : 'none';
       pageDown.style.display = page < pages.length - 1 ? '' : 'none';
+      updateNav();
       updateStatus();
       if (focusIdx !== undefined && vis.includes(focusIdx)) {
         const el = nodesEl.querySelector('.root-node[data-idx="' + focusIdx + '"]');
@@ -861,16 +1195,14 @@
     }
 
     addBtn.addEventListener('click', () => {
-      // Validation: only 1 empty waiting input at a time. If one already
-      // exists (stored word fails isValidWord), jump to its page and
-      // focus + shake it instead of adding a duplicate.
-      const ordered = graph.getOrderedNodes();
+      // Validation per level: only 1 empty waiting input at a time.
+      const ordered = currentList();
       let emptyPos = -1;
       for (let i = 0; i < ordered.length; i++) {
         if (!isValidWord(ordered[i].word)) { emptyPos = i; break; }
       }
       if (emptyPos !== -1) {
-        const pages = computePages(graph.size);
+        const pages = computePages(currentSize());
         for (let p = 0; p < pages.length; p++) {
           if (pages[p].includes(emptyPos)) { page = p; break; }
         }
@@ -880,17 +1212,19 @@
         if (inp) rejectEmpty(inp);
         return;
       }
-      graph.addNode('');
+      graph.addNode('', currentParentId);
       saveGraph();
-      const pages = computePages(graph.size);
+      updateNav();
+      const pages = computePages(currentSize());
       page = pages.length - 1;
-      render(graph.size - 1);
+      render(currentSize() - 1);
     });
+    backBtn.addEventListener('click', goBack);
     pageUp.addEventListener('click', () => {
       if (page > 0) { page--; render(); }
     });
     pageDown.addEventListener('click', () => {
-      const pages = computePages(graph.size);
+      const pages = computePages(currentSize());
       if (page < pages.length - 1) { page++; render(); }
     });
 
@@ -905,6 +1239,7 @@
 
     // Init: graph drives center. Migrate legacy keys if present.
     loadNodes();
+    currentParentId = null;
     page = 0;
     render('first-empty-visible');
     // Autofocus first empty visible input on load (waiting state).
@@ -938,15 +1273,21 @@
         const push = (el, id) => { if (el && isVisibleEl(el)) out.push({ el, id }); };
         push(document.getElementById('round-btn'), 'write-btn');
         push(document.getElementById('stage'), 'stage');
+        push(document.getElementById('back-btn'), 'back-btn');
+        push(document.getElementById('level-title'), 'level-title');
         push(document.getElementById('page-up'), 'page-up');
         push(document.getElementById('page-down'), 'page-down');
         push(document.getElementById('add-node-btn'), 'add-btn');
         push(document.getElementById('status'), 'status');
         push(document.getElementById('version'), 'version');
+        document.querySelectorAll('#crumbs .crumb-btn').forEach((b) => {
+          push(b, 'crumb-' + (b.dataset.crumb || '0'));
+        });
         document.querySelectorAll('.root-node').forEach((nodeEl) => {
           const idx = nodeEl.dataset.idx || '0';
           push(nodeEl.querySelector('.root-input'), 'node-' + idx + '-box');
           push(nodeEl.querySelector('.solid-text'), 'node-' + idx + '-text');
+          push(nodeEl.querySelector('.open-btn'), 'open-node-' + idx);
         });
         return out;
       }
