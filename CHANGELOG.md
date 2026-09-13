@@ -3,6 +3,12 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.64] - 2026-09-13 - EXPERIMENTAL focused-node bottom outline (rollback ready)
+- EXPERIMENTAL (awaiting feedback, rollback ready in a single commit): dim thick bottom outline under the focused node via `body.focus-underline .root-node:focus-within::after` (`content:''`, `display:block`, `width:60%`, `height:4px`, `margin-top:6px`, `border-radius:2px`, `background:rgba(0,0,0,0.25)` light / `rgba(255,255,255,0.25)` dark).
+- Gated by `const FEATURES.focusUnderline = true` (easy off: set `false`, optional `localStorage 'feat-focus-underline'` override); JS adds `body.focus-underline` only when on, so `false` removes the underline entirely.
+- Kept: no container `box-shadow` (per-letter glow only), shrink `0.98` + lift `translateY(-2px)`, responsive clamped gaps, drill, body, knobs, mono, arrows, validation, Alt peek, hot reload.
+- Rollback: set flag `false` + delete the two `EXPERIMENTAL v0.0.64` CSS blocks (light + dark) + flag/JS gate + this entry.
+
 ## [v0.0.63] - 2026-09-13 - Responsive clamped node gap
 - `#nodes` `gap: 18px` -> `gap: clamp(8px, 2.5vh, 24px)` (min 8px, preferred 2.5vh, max 24px) so paging 3 fits without scroll on short/tall viewports.
 - `#nodes.show-4` `gap: 8px` -> `gap: clamp(4px, 1.5vh, 12px)` (min 4px, max 12px) to keep 4-up compact without overflow.
