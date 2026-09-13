@@ -3,6 +3,11 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.74] - 2026-09-13 - credit footer
+
+- New dimmest silent `#credit` footer (`made by nd28 with muse spark 1.3`, tiny `10px` mono, `opacity:0.3`, fixed bottom-left above style toggle, `pointer-events:none`, no link): inherits body color so mono/darkmode just works.
+- Kept: all features, style knobs position, version footer.
+
 ## [v0.0.73] - 2026-09-13 - "?" key toggles tip card
 
 - Global `keydown` `?` (shift+/) toggles `#keys-tip-card` like the `?` button (`setOpen(!open)`): skips Alt/Ctrl/Meta, ignores non-empty `INPUT`/`TEXTAREA` (lets user type `?`); empty waiting input `preventDefault`s (no `?` char) and toggles.
