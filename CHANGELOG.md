@@ -3,6 +3,13 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.66] - 2026-09-13 - EXPERIMENTAL focus corners (bottom off, rollback ready)
+- EXPERIMENTAL (awaiting feedback, rollback ready in a single commit): camera-shutter corner focus UI replaces the bottom outline — 4 child `.corner` L shapes per `.root-node` (`tl/tr/bl/br`, `14px`, `2px` borders, `dim rgba(0,0,0,0.35)` light / `rgba(255,255,255,0.35)` dark, `position:absolute` outside node padding `top/bottom:-6px`, `left/right:-10px`), rest invisible; shown only on `body.focus-corners .root-node:focus-within .corner` (`display:block`, else `display:none`, `pointer-events:none`).
+- Gated by `const FEATURES.focusCorners = true` (easy off: set `false`, optional `localStorage 'feat-focus-corners'` override `'1'/'true'`); JS adds `body.focus-corners` only when on, same pattern as underline gate.
+- Bottom underline OFF: `FEATURES.focusUnderline = true` -> `false` (light + dark `body.focus-underline .root-node:focus-within::after` blocks + flag/JS gate kept for rollback).
+- Kept: no container `box-shadow` (per-letter glow only), shrink `0.98` + lift `translateY(-2px)`, responsive clamped gaps, drill, body, knobs, mono, arrows, validation, Alt peek, hot reload.
+- Rollback: set `focusCorners false` (+ optionally `focusUnderline true`) + delete the two `EXPERIMENTAL v0.0.66` corner CSS blocks (light + dark) + flag/JS gate + corner divs in `createNodeEl` + this entry.
+
 ## [v0.0.65] - 2026-09-13 - Fix focus underline gap + 80px height floor
 - `body.focus-underline .root-node:focus-within::after` `margin-top:6px` -> `margin-top:2px` (`width:60%`, `height:4px`, `border-radius:2px` unchanged) so the dim thick outline sits close to text.
 - `.root-node` `min-height:80px` -> `min-height:0` (fit content; `align-items:center`, `justify-content:center`, `flex-direction:column` unchanged) so focused/empty height goes below 80px; `.solid-wrap` `min-height:80px` -> `min-height:40px`; `#nodes.show-4` `60px` floors kept.
