@@ -1,4 +1,4 @@
-<!-- button-app v0.0.25 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.27 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -241,6 +241,33 @@
   }
   #add-node-btn:hover { background: #222; }
   #add-node-btn:active { transform: scale(0.94); }
+  /* Level nav (v0.0.27): Home + Back row below + button, inside only. */
+  #level-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  #home-btn, #level-back-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: #000;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #home-btn:hover, #level-back-btn:hover { background: #222; }
+  #home-btn:active, #level-back-btn:active { transform: scale(0.94); }
   /* Drill nav: back + crumbs (mono) + level title (system font, parent word only). */
   #nav-bar {
     display: flex;
@@ -383,6 +410,8 @@
     .pager-btn:hover { background: #ddd; }
     #add-node-btn { background: #fff; color: #000; border-color: #fff; }
     #add-node-btn:hover { background: #ddd; }
+    #home-btn, #level-back-btn { background: #fff; color: #000; border-color: #fff; }
+    #home-btn:hover, #level-back-btn:hover { background: #ddd; }
     #back-btn { background: #fff; color: #000; border-color: #fff; }
     #back-btn:hover { background: #ddd; }
     .crumb-btn { border-color: #fff; color: #fff; }
@@ -410,10 +439,14 @@
     <div id="nodes" aria-live="polite"></div>
     <button id="page-down" class="pager-btn" aria-label="Next page" style="display:none">&#9660;</button>
     <button id="add-node-btn" aria-label="Add root node" title="Add root node">+</button>
+    <div id="level-nav" style="display:none">
+      <button id="home-btn" aria-label="Back to roots" title="Back to roots">&#8962;</button>
+      <button id="level-back-btn" aria-label="Back to parent" title="Back to parent">&#8249;</button>
+    </div>
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.25</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.27</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -666,27 +699,57 @@
       try { localStorage.setItem(LS_GRAPH, JSON.stringify(graph.toJSON())); } catch (_) {}
     }
     function saveNodes() { saveGraph(); }
-    // Prune empty waiting nodes per parent level down to max 1 empty.
-    // Ensures roots have >=1 node so the user can always type.
-    function pruneEmptiesToOne() {
-      const ordered = graph.getOrderedNodes();
-      const byParent = new Map();
-      for (const n of ordered) {
-        const k = n.parentId || '\0roots';
-        if (!byParent.has(k)) byParent.set(k, []);
-        byParent.get(k).push(n);
-      }
+    // Prune empty leaves (v0.0.26): any node with trim=='' AND zero children
+    // auto-removes. Empty nodes WITH children are structural parents — kept.
+    // Per level steady state: >=1 non-empty -> zero empties (no waiting until
+    // + pressed); zero nodes -> one empty waiting (so typing stays possible).
+    // opts.preserveCurrent: skip the current view level (transient + typing /
+    // paging must survive render). Load/navigate use full prune.
+    // Iterative: removing a leaf can expose its empty parent as a new leaf.
+    function pruneEmptiesToOne(opts) {
+      const preserveCurrent = !!(opts && opts.preserveCurrent);
+      const skipPid = preserveCurrent ? (currentParentId || null) : undefined;
       let changed = false;
-      for (const group of byParent.values()) {
-        let keptEmpty = false;
-        for (const n of group) {
-          if (!(n.word || '').trim()) {
-            if (!keptEmpty) keptEmpty = true;
-            else { graph.removeNode(n.id); changed = true; }
+      let loop = true;
+      while (loop) {
+        loop = false;
+        const ordered = graph.getOrderedNodes();
+        const nonEmptyByParent = new Map();
+        for (const m of ordered) {
+          if (!graph.getNode(m.id)) continue;
+          if ((m.word || '').trim()) {
+            const kk = m.parentId || '\0roots';
+            nonEmptyByParent.set(kk, (nonEmptyByParent.get(kk) || 0) + 1);
+          }
+        }
+        const keptProtected = new Set();
+        for (const n of ordered) {
+          if (!graph.getNode(n.id)) continue;
+          if ((n.word || '').trim()) continue;
+          if (graph.getChildren(n.id).length !== 0) continue;
+          const pid = n.parentId || null;
+          if (skipPid !== undefined && pid === skipPid) continue;
+          const pkey = n.parentId || '\0roots';
+          const isProtected = pid === null || pid === (currentParentId || null);
+          const hasNonEmpty = (nonEmptyByParent.get(pkey) || 0) > 0;
+          if (hasNonEmpty) {
+            graph.removeNode(n.id); changed = true; loop = true;
+          } else if (isProtected) {
+            if (!keptProtected.has(pkey)) keptProtected.add(pkey);
+            else { graph.removeNode(n.id); changed = true; loop = true; }
+          } else {
+            graph.removeNode(n.id); changed = true; loop = true;
           }
         }
       }
-      if (graph.childCount(null) === 0) { graph.addNode('', null); changed = true; }
+      if (skipPid !== null || !preserveCurrent) {
+        if (graph.childCount(null) === 0) { graph.addNode('', null); changed = true; }
+      }
+      if (currentParentId && graph.getNode(currentParentId)) {
+        if (skipPid !== currentParentId && graph.childCount(currentParentId) === 0) {
+          graph.addNode('', currentParentId); changed = true;
+        }
+      }
       if (changed) saveGraph();
       return changed;
     }
@@ -699,23 +762,49 @@
       }
       return false;
     }
-    // Remove a single empty node by id (blur/Enter with empty trim).
-    // Keeps it if it is the only node in its level; otherwise removes.
+    // Remove a single empty leaf by id (v0.0.26: trim=='' AND zero children).
+    // Empty WITH children is structural — kept (needs a word, shake on commit).
+    // Keeps the sole node of an empty level so typing stays possible.
     function pruneEmptyNodeById(id) {
       const n = id ? graph.getNode(id) : null;
       if (!n) return false;
       if ((n.word || '').trim()) return false;
-      const sibs = graph.childCount(n.parentId || null);
+      if (graph.getChildren(id).length !== 0) return false;
+      const pid = n.parentId || null;
+      const sibs = graph.childCount(pid);
       if (sibs <= 1) {
         graph.updateNode(id, '');
         saveGraph();
         updateStatus();
         return false;
       }
-      const wasCurrentLevel = (n.parentId || null) === (currentParentId || null);
+      const wasCurrentLevel = pid === (currentParentId || null);
       graph.removeNode(id);
+      if (graph.childCount(pid) === 0 && (pid === null || pid === currentParentId)) {
+        graph.addNode('', pid);
+      }
       saveGraph();
       if (wasCurrentLevel) { clampPage(); render(); }
+      return true;
+    }
+    // Empty-commit helper (v0.0.26): Enter/blur with trim=='' on a childless
+    // leaf auto-removes when siblings exist (no shake); sole waiting input or
+    // structural parent (has children) keeps validation shake. Returns true
+    // when the node was removed (caller must return early, no shake).
+    function autoRemoveEmptyLeaf(nid) {
+      const nd = nid ? graph.getNode(nid) : null;
+      if (!nd) return false;
+      if ((nd.word || '').trim()) return false;
+      if (graph.getChildren(nid).length !== 0) return false;
+      const pid = nd.parentId || null;
+      if (graph.childCount(pid) <= 1) return false;
+      const wasCurrent = pid === (currentParentId || null);
+      graph.removeNode(nid);
+      if (graph.childCount(pid) === 0 && (pid === null || pid === currentParentId)) {
+        graph.addNode('', pid);
+      }
+      saveGraph();
+      if (wasCurrent) { clampPage(); render(); } else { updateStatus(); }
       return true;
     }
     function loadGraph() {
@@ -843,6 +932,9 @@
     const crumbsEl = document.getElementById('crumbs');
     const levelTitle = document.getElementById('level-title');
     const navBar = document.getElementById('nav-bar');
+    const levelNav = document.getElementById('level-nav');
+    const homeBtn = document.getElementById('home-btn');
+    const levelBackBtn = document.getElementById('level-back-btn');
 
     function updateStatus() {
       const pages = computePages(currentSize());
@@ -869,6 +961,7 @@
       if (pid && !graph.getNode(pid)) return;
       currentParentId = pid;
       page = 0;
+      pruneEmptiesToOne();
       ensureLevelHasNode(currentParentId);
       saveGraph();
       render('first-empty-visible');
@@ -941,6 +1034,8 @@
       }
       // Contextual add button + placeholder hint.
       const pw2 = parentWord();
+      // Level nav row (v0.0.27): Home + Back below + button, inside only.
+      if (levelNav) levelNav.style.display = p ? '' : 'none';
       if (p) {
         addBtn.setAttribute('aria-label', 'Add child to ' + (pw2 || 'parent'));
         addBtn.title = 'Add to ' + (pw2 || 'parent');
@@ -1100,7 +1195,11 @@
           if (nodeEl._solidifying) return;
           const raw = input.value;
           if (!isValidWord(raw)) {
-            if (!String(raw || '').trim()) rejectEmpty(input);
+            if (!String(raw || '').trim()) {
+              const nid = (nodeEl.dataset && nodeEl.dataset.nodeId) || nodeIdAt(idx);
+              if (nid && autoRemoveEmptyLeaf(nid)) return;
+              rejectEmpty(input);
+            }
             else rejectTooLong(input);
             return;
           }
@@ -1114,12 +1213,15 @@
         if (!input.classList.contains('show') && !input.classList.contains('edit-pop')) return;
         const raw = input.value;
         if (!isValidWord(raw)) {
-          // Validation blocks empties: shake + hint, keep waiting input
-          // focused, do NOT solidify, do NOT touch the graph.
+          // v0.0.26: empty childless leaf with siblings auto-removes (no shake,
+          // no refocus). Sole waiting input or structural parent keeps the
+          // validation shake + hint. Over-long always shakes.
           // Defer focus: blur must finish first or refocus is ignored.
           const pw = parentWord();
           const suffix = pw ? ' in ' + pw : '';
           if (!String(raw || '').trim()) {
+            const nid = (nodeEl.dataset && nodeEl.dataset.nodeId) || nodeIdAt(idx);
+            if (nid && autoRemoveEmptyLeaf(nid)) return;
             shakeInput(input);
             status.textContent = 'Type a word first' + suffix;
             setTimeout(() => {
@@ -1176,6 +1278,7 @@
 
     function render(focusIdx) {
       if (currentParentId && !graph.getNode(currentParentId)) currentParentId = null;
+      pruneEmptiesToOne({ preserveCurrent: true });
       ensureLevelHasNode(currentParentId);
       const pages = clampPage();
       const vis = pages[page] || [];
@@ -1235,6 +1338,8 @@
       render(currentSize() - 1);
     });
     backBtn.addEventListener('click', goBack);
+    if (homeBtn) homeBtn.addEventListener('click', () => navigateTo(null));
+    if (levelBackBtn) levelBackBtn.addEventListener('click', goBack);
     pageUp.addEventListener('click', () => {
       if (page > 0) { page--; render(); }
     });
@@ -1293,6 +1398,8 @@
         push(document.getElementById('page-up'), 'page-up');
         push(document.getElementById('page-down'), 'page-down');
         push(document.getElementById('add-node-btn'), 'add-btn');
+        push(document.getElementById('home-btn'), 'home-btn');
+        push(document.getElementById('level-back-btn'), 'back-btn');
         push(document.getElementById('status'), 'status');
         push(document.getElementById('version'), 'version');
         document.querySelectorAll('#crumbs .crumb-btn').forEach((b) => {

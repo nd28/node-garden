@@ -3,6 +3,17 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.27] - 2026-09-13 - Level nav row below add button
+- New `#level-nav` flex row (centered, gap 8px) below `#add-node-btn`, visible only when inside (`currentParentId!=null`, hidden at root via `updateNav`).
+- `#home-btn` (`⌂`, mono 24px rounded) -> `navigateTo(null)` (roots, page 0); `#level-back-btn` (`‹`, mono 24px rounded) -> `goBack()` (parent of current); top `#back-btn` kept, both backs work; prune/ensure, paging reset, focus logic preserved via shared `navigateTo`/`goBack`.
+- Alt peek: `home-btn` + `back-btn` (bottom back badge copies `back-btn`) alongside existing top `back-btn`; mono B/W + darkmode invert, validation, thick caret, blur/fade, hot reload, ripple off, centered baseline kept.
+
+## [v0.0.26] - 2026-09-13 - Auto-remove empty childless nodes
+- `pruneEmptiesToOne(opts)`: any node with `trim==''` AND `getChildren(id).length===0` auto-removes (iterative, empty WITH children kept as structural parents); per-level steady state is `>=1` non-empty -> zero empties (no waiting until `+`), zero nodes -> one empty waiting; `opts.preserveCurrent` skips the current view level so transient `+` typing/paging survives `render`, full prune on `load`/`navigateTo`.
+- `pruneEmptyNodeById` + new `autoRemoveEmptyLeaf(id)`: child check first, sole-node level keeps waiting input, otherwise silent remove + `clampPage`/`render` (no shake); structural empty parents fall through to validation shake.
+- Enter/blur with empty trim: childless leaf with siblings auto-removes, sole waiting or parent-with-children keeps `rejectEmpty` shake + `Type a word first` hint; over-long still `Keep it under 60 chars`; `+` single-waiting validation unchanged.
+- Kept: mono, drill nav clean, paging, thick caret, blur/fade, Alt peek, hot reload, ripple off, small add, centered baseline.
+
 ## [v0.0.25] - 2026-09-13 - Centered node text baseline
 - `.solid-wrap` keeps `align-items:center`; `.solid-text` adds `line-height:1` + `display:inline-flex` + `align-items:center` + `vertical-align:middle` + `margin:0` + `padding:0` so text baseline sits centered vs button.
 - `.letter` spans add `line-height:1` + `vertical-align:middle`; `.open-btn` adds `align-self:center`.
