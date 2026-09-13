@@ -1,4 +1,4 @@
-<!-- button-app v0.0.62 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.63 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,10 +53,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 18px;
+    /* v0.0.63: responsive clamped gap (min 8px, max 24px) so paging 3 fits without scroll. */
+    gap: clamp(8px, 2.5vh, 24px);
     overflow: visible;
   }
-  #nodes.show-4 { gap: 8px; }
+  /* v0.0.63: show-4 tighter clamp (min 4px, max 12px). */
+  #nodes.show-4 { gap: clamp(4px, 1.5vh, 12px); }
   .root-node {
     display: flex;
     align-items: center;
@@ -735,7 +737,7 @@
   <button id="weight-btn" aria-label="Cycle node font weight" title="Cycle node font weight">B</button>
   <button id="size-btn" aria-label="Cycle node font size" title="Cycle node font size">A+</button>
   </div>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.62</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.63</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');

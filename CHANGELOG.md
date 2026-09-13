@@ -3,7 +3,10 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
-## [v0.0.62] - 2026-09-13 - Dimmer node body, full-bright title
+## [v0.0.63] - 2026-09-13 - Responsive clamped node gap
+- `#nodes` `gap: 18px` -> `gap: clamp(8px, 2.5vh, 24px)` (min 8px, preferred 2.5vh, max 24px) so paging 3 fits without scroll on short/tall viewports.
+- `#nodes.show-4` `gap: 8px` -> `gap: clamp(4px, 1.5vh, 12px)` (min 4px, max 12px) to keep 4-up compact without overflow.
+- Kept: `body overflow:hidden` (no scroll), drill, body, knobs, mono, arrows, validation, Alt peek, hot reload.
 - `#node-body` `opacity: 0.85` -> `0.6` light + explicit `opacity: 0.6` dark (was inheriting light value); typed body text sits dimmer below the title; `::placeholder` stays dim `0.35` (`#888` light / `#666` dark) untouched.
 - `#level-title` `opacity: 0.8` -> `1` full bright so the parent word stays prominent above the dimmed body.
 - Kept: knobs collapse, drill, body save/autogrow, mono/darkmode, Alt peek, hot reload.
