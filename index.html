@@ -1,4 +1,4 @@
-<!-- button-app v0.0.18 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.19 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,6 +109,15 @@
   .root-input.edit-pop {
     display: block;
     animation: editUnblur 0.25s ease forwards;
+  }
+  /* Empty-validation shake: uses `translate` (not `transform`) so it never
+     fights the grow/edit-pop scale animations. Re-triggered from JS. */
+  .root-input.shake { animation: inputShake 0.3s ease; }
+  @keyframes inputShake {
+    0%, 100% { translate: 0 0; }
+    25% { translate: -6px 0; }
+    50% { translate: 6px 0; }
+    75% { translate: -3px 0; }
   }
   @keyframes editUnblur {
     from { filter: blur(8px); opacity: 0; transform: scale(1); }
@@ -292,7 +301,7 @@
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.18</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.19</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -307,6 +316,33 @@
 
     function toTitleCase(s) {
       return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+    // Empty-node validation (v0.0.19): a word needs >=1 visible char,
+    // capped at MAX_WORD_LEN. Used by Enter/blur solidify + add button.
+    const MAX_WORD_LEN = 60;
+    function isValidWord(word) {
+      const t = String(word || '').trim();
+      return t.length >= 1 && t.length <= MAX_WORD_LEN;
+    }
+    function shakeInput(input) {
+      if (!input) return;
+      input.classList.remove('shake');
+      void input.offsetWidth;
+      input.classList.add('shake');
+      setTimeout(() => { input.classList.remove('shake'); }, 350);
+      requestAnimationFrame(updateCaret);
+    }
+    function rejectEmpty(input) {
+      shakeInput(input);
+      try { input.focus(); } catch (_) {}
+      status.textContent = 'Type a word first';
+      requestAnimationFrame(updateCaret);
+    }
+    function rejectTooLong(input) {
+      shakeInput(input);
+      try { input.focus(); } catch (_) {}
+      status.textContent = 'Keep it under 60 chars';
+      requestAnimationFrame(updateCaret);
     }
     function newNodeId() {
       try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (_) {}
@@ -695,6 +731,7 @@
       input.type = 'text';
       input.placeholder = '';
       input.autocomplete = 'off';
+      input.maxLength = MAX_WORD_LEN;
       input.value = getWordAt(idx) || '';
       input.style.caretColor = 'transparent';
 
@@ -725,13 +762,13 @@
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           if (nodeEl._solidifying) return;
-          const w = input.value.trim();
-          if (w) {
-            showSolid(nodeEl, idx, toTitleCase(w));
-          } else {
-            setWordAt(idx, '');
-            pruneEmptyNodeById(nodeIdAt(idx));
+          const raw = input.value;
+          if (!isValidWord(raw)) {
+            if (!String(raw || '').trim()) rejectEmpty(input);
+            else rejectTooLong(input);
+            return;
           }
+          showSolid(nodeEl, idx, toTitleCase(raw.trim()));
         }
       });
       input.addEventListener('blur', () => {
@@ -739,13 +776,29 @@
         if (nodeEl._solidifying) return;
         if (wrap.classList.contains('show')) return;
         if (!input.classList.contains('show') && !input.classList.contains('edit-pop')) return;
-        const w = input.value.trim();
-        if (w) {
-          showSolid(nodeEl, idx, toTitleCase(w));
-        } else {
-          setWordAt(idx, '');
-          pruneEmptyNodeById(nodeIdAt(idx));
+        const raw = input.value;
+        if (!isValidWord(raw)) {
+          // Validation blocks empties: shake + hint, keep waiting input
+          // focused, do NOT solidify, do NOT touch the graph.
+          // Defer focus: blur must finish first or refocus is ignored.
+          if (!String(raw || '').trim()) {
+            shakeInput(input);
+            status.textContent = 'Type a word first';
+            setTimeout(() => {
+              try { input.focus(); } catch (_) {}
+              if (document.activeElement === input) status.textContent = 'Type a word first';
+            }, 0);
+          } else {
+            shakeInput(input);
+            status.textContent = 'Keep it under 60 chars';
+            setTimeout(() => {
+              try { input.focus(); } catch (_) {}
+              if (document.activeElement === input) status.textContent = 'Keep it under 60 chars';
+            }, 0);
+          }
+          return;
         }
+        showSolid(nodeEl, idx, toTitleCase(raw.trim()));
       });
       solid.addEventListener('click', () => {
         solid.classList.remove('solid-unblur');
@@ -808,6 +861,25 @@
     }
 
     addBtn.addEventListener('click', () => {
+      // Validation: only 1 empty waiting input at a time. If one already
+      // exists (stored word fails isValidWord), jump to its page and
+      // focus + shake it instead of adding a duplicate.
+      const ordered = graph.getOrderedNodes();
+      let emptyPos = -1;
+      for (let i = 0; i < ordered.length; i++) {
+        if (!isValidWord(ordered[i].word)) { emptyPos = i; break; }
+      }
+      if (emptyPos !== -1) {
+        const pages = computePages(graph.size);
+        for (let p = 0; p < pages.length; p++) {
+          if (pages[p].includes(emptyPos)) { page = p; break; }
+        }
+        render(emptyPos);
+        const el = nodesEl.querySelector('.root-node[data-idx="' + emptyPos + '"]');
+        const inp = el && el.querySelector('.root-input');
+        if (inp) rejectEmpty(inp);
+        return;
+      }
       graph.addNode('');
       saveGraph();
       const pages = computePages(graph.size);

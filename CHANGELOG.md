@@ -3,6 +3,12 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.19] - 2026-09-13 - Block empty root nodes
+- `isValidWord(word)`: trimmed length 1..60 (`MAX_WORD_LEN = 60`); wired to Enter, blur, and `+` add button.
+- Solidify (Enter/blur): empty or over-long input is rejected — `inputShake` 0.3s (via `translate`, no fight with grow scale), `#status` hint (`Type a word first` / `Keep it under 60 chars`), input stays focused; no solid, no graph write.
+- Add (`+`): creates 1 empty waiting input only if no other empty waiting exists; if one is open, jumps to its page and focuses + shakes it instead of duplicating.
+- `input.maxLength = 60` guards typing; `Graph.removeNode` + load `pruneEmptiesToOne` kept for legacy cleanup.
+
 ## [v0.0.18] - 2026-09-13 - Prune empty waiting nodes
 - `Graph.removeNode(id)`: splice from `order`, drop out/in edges, bridge prev->next chain gap, reindex `order` fields.
 - Blur/Enter with empty trim removes that node (keeps it if sole node; ensures >=1 node so typing is always possible).
