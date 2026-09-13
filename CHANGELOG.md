@@ -3,6 +3,22 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.32] - 2026-09-13 - Remember last level across reloads
+- Persist `currentParentId` in `root-current-parent` (+ `page` in `root-current-page`) via new `savePlace()` on every `navigateTo` (now `navigateTo(parentId, opts)` with `{page, focus, animate}`), pager `page-up/down`, `+` add, arrow-nav page turns (`focusById`), and prune-triggered `clampPage`/`render`; `readSavedPlace()` parses both keys (int-clamped page).
+- `loadNodes()` restores saved parent/page after `loadGraph` migration, then full `pruneEmptiesToOne()`, re-validates (`saved id still exists else roots fallback`), `clampPage()` + `savePlace()`; init no longer resets to `null/0` (removed `currentParentId=null; page=0`), just `loadNodes(); clampPage(); render('first-empty-visible')`.
+- Kept: arrow nav, paging, validation, prune empty leaf, drill open `›`, home/back-bottom, crumbs toggle hidden, mono/darkmode, Alt peek, hot reload, ripple off.
+
+## [v0.0.31] - 2026-09-13 - Remove top back button
+- Removed top `#back-btn` (`← Back`) from `#nav-bar` (kept `#nav-bar` for `#crumbs` + `#level-title`); removed its `#back-btn` CSS (light + darkmode), `backBtn` const/wiring (`backBtn.addEventListener('click', goBack)`), `updateNav` display toggle, and Alt peek `back-top` push.
+- Bottom `#level-back-btn` kept as the single back control (`goBack` wiring unchanged); Alt peek renamed `back-bottom` -> `back-btn` (single again, no duplicate).
+- Kept: `goBack` fn, arrow nav, drill, paging, validation, prune, crumbs toggle, home, mono/darkmode, hot reload, ripple off.
+
+## [v0.0.30] - 2026-09-13 - Keyboard up/down navigation
+- ArrowUp/ArrowDown move focus across all nodes in the current level (`currentParentId` scope, `computePages` paging): Down from outside focuses node 1, then node 2/3, then turns the page to node 4, etc.; Up reverses (last node when entering from outside, page-back jumps like node 4 -> render 1-3 + focus node 3).
+- Typing never hijacked: arrows inside a non-empty input keep caret behavior (ignored); empty waiting inputs still navigate (no caret to protect). Solids are `tabindex=0` (`role=button`, `Edit <word>` label) with a mono 2px `currentColor` focus ring (darkmode-safe); Enter on a focused solid opens edit like click.
+- Blur/prune-safe: targets resolve by node id with retry, so blur-triggered empty-leaf auto-remove during page turns can't strand focus.
+- Kept: mono, drill, crumbs toggle, home/back, paging, validation, prune, Alt peek (no new buttons/IDs), hot reload, ripple off.
+
 ## [v0.0.29] - 2026-09-13 - Unique back peek IDs
 - Alt peek: top `#back-btn` -> `back-top`, bottom `#level-back-btn` -> `back-bottom` (was duplicate `back-btn` twice); both buttons still work (`goBack`), both stay visible when inside.
 - Kept: mono, drill, crumbs hidden default + toggle, paging, validation, prune, hot reload, ripple off.

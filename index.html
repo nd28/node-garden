@@ -1,4 +1,4 @@
-<!-- button-app v0.0.29 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.32 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -179,6 +179,9 @@
     transition: filter 0.25s ease, opacity 0.25s ease, transform 0.18s ease, text-shadow 0.18s ease;
   }
   #nodes.show-4 .solid-text { font-size: 1.6rem; }
+  /* Keyboard nav focus ring (v0.0.30): mono 2px outline, currentColor adapts to darkmode. */
+  .solid-text:focus { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 4px; }
+  .root-input:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
   .solid-text.blur-out {
     filter: blur(8px);
     opacity: 0;
@@ -268,7 +271,7 @@
   }
   #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #222; }
   #home-btn:active, #level-back-btn:active, #crumb-toggle-btn:active { transform: scale(0.94); }
-  /* Drill nav: back + crumbs (mono) + level title (system font, parent word only). */
+  /* Drill nav: crumbs (mono) + level title (system font, parent word only). */
   #nav-bar {
     display: flex;
     flex-direction: column;
@@ -277,23 +280,6 @@
     gap: 6px;
     max-width: 92vw;
   }
-  #back-btn {
-    width: auto;
-    min-width: 36px;
-    height: 28px;
-    padding: 0 10px;
-    border-radius: 10px;
-    border: 1px solid #000;
-    background: #000;
-    color: #fff;
-    font-size: 13px;
-    line-height: 1;
-    cursor: pointer;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    transition: background 0.15s ease, transform 0.15s ease;
-  }
-  #back-btn:hover { background: #222; }
-  #back-btn:active { transform: scale(0.94); }
   #crumbs {
     display: flex;
     flex-direction: row;
@@ -412,8 +398,6 @@
     #add-node-btn:hover { background: #ddd; }
     #home-btn, #level-back-btn, #crumb-toggle-btn { background: #fff; color: #000; border-color: #fff; }
     #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #ddd; }
-    #back-btn { background: #fff; color: #000; border-color: #fff; }
-    #back-btn:hover { background: #ddd; }
     .crumb-btn { border-color: #fff; color: #fff; }
     .crumb-btn:hover { background: #fff; color: #000; }
     .crumb-btn.current { background: #fff; color: #000; }
@@ -431,7 +415,6 @@
   <button id="round-btn" style="display:none">Write</button>
   <div id="stage">
     <div id="nav-bar">
-      <button id="back-btn" aria-label="Back to parent" title="Back to parent" style="display:none">&larr; Back</button>
       <nav id="crumbs" aria-label="Breadcrumb" style="display:none"></nav>
       <div id="level-title" aria-live="polite"></div>
     </div>
@@ -447,7 +430,7 @@
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.29</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.32</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -459,6 +442,8 @@
     const LS_GRAPH = 'root-graph-json';
     const LS_NEW = 'root-nodes-json';
     const LS_OLD = 'root-node-word';
+    const LS_PARENT = 'root-current-parent';
+    const LS_PAGE = 'root-current-page';
 
     // Feature flags (v0.0.22): toggle experiments here. Ripple is OFF by default.
     // Override via localStorage: localStorage.setItem('feat-ripple', '1') to force on, '0' to force off.
@@ -700,6 +685,29 @@
       try { localStorage.setItem(LS_GRAPH, JSON.stringify(graph.toJSON())); } catch (_) {}
     }
     function saveNodes() { saveGraph(); }
+    // Last-level restore (v0.0.32): persist currentParentId + page on every
+    // navigateTo / pager move; restored in loadNodes after prune/migration.
+    function savePlace() {
+      try {
+        if (currentParentId) localStorage.setItem(LS_PARENT, currentParentId);
+        else localStorage.removeItem(LS_PARENT);
+        localStorage.setItem(LS_PAGE, String(page));
+      } catch (_) {}
+    }
+    function readSavedPlace() {
+      let pid = null;
+      let pg = 0;
+      try {
+        const raw = localStorage.getItem(LS_PARENT);
+        if (typeof raw === 'string' && raw) pid = raw;
+        const rp = localStorage.getItem(LS_PAGE);
+        if (rp !== null) {
+          const n = parseInt(rp, 10);
+          if (Number.isFinite(n) && n >= 0) pg = n;
+        }
+      } catch (_) {}
+      return { pid, pg };
+    }
     // Prune empty leaves (v0.0.26): any node with trim=='' AND zero children
     // auto-removes. Empty nodes WITH children are structural parents — kept.
     // Per level steady state: >=1 non-empty -> zero empties (no waiting until
@@ -785,7 +793,7 @@
         graph.addNode('', pid);
       }
       saveGraph();
-      if (wasCurrentLevel) { clampPage(); render(); }
+      if (wasCurrentLevel) { clampPage(); render(); savePlace(); }
       return true;
     }
     // Empty-commit helper (v0.0.26): Enter/blur with trim=='' on a childless
@@ -805,7 +813,7 @@
         graph.addNode('', pid);
       }
       saveGraph();
-      if (wasCurrent) { clampPage(); render(); } else { updateStatus(); }
+      if (wasCurrent) { clampPage(); render(); savePlace(); } else { updateStatus(); }
       return true;
     }
     function loadGraph() {
@@ -851,8 +859,20 @@
     }
     function loadNodes() {
       loadGraph();
-      if (currentParentId && !graph.getNode(currentParentId)) currentParentId = null;
+      // Restore last level (v0.0.32): saved parent validated after
+      // migration/prune, else fallback to roots. Saved page clamped later.
+      const saved = readSavedPlace();
+      if (saved.pid && graph.getNode(saved.pid)) {
+        currentParentId = saved.pid;
+        page = saved.pg;
+      } else {
+        if (currentParentId && !graph.getNode(currentParentId)) currentParentId = null;
+        if (saved.pid) currentParentId = null;
+      }
       pruneEmptiesToOne();
+      if (currentParentId && !graph.getNode(currentParentId)) currentParentId = null;
+      clampPage();
+      savePlace();
     }
 
     // Paging: pages of 3, but if total<=4 show all (adjust layout to fit 4).
@@ -929,7 +949,6 @@
       setTimeout(() => requestAnimationFrame(updateCaret), 320);
     }
 
-    const backBtn = document.getElementById('back-btn');
     const crumbsEl = document.getElementById('crumbs');
     const levelTitle = document.getElementById('level-title');
     const navBar = document.getElementById('nav-bar');
@@ -960,16 +979,21 @@
     }
 
     // Drill navigation: currentParentId=null shows roots.
-    function navigateTo(parentId) {
+    // opts: {page?: number, focus?: string|number, animate?: boolean (no-op, kept for callers)}.
+    function navigateTo(parentId, opts) {
       const pid = parentId || null;
       if (pid && !graph.getNode(pid)) return;
+      const o = opts || {};
       currentParentId = pid;
-      page = 0;
+      page = (Number.isInteger(o.page) && o.page >= 0) ? o.page : 0;
       crumbsVisible = false;
       pruneEmptiesToOne();
       ensureLevelHasNode(currentParentId);
       saveGraph();
-      render('first-empty-visible');
+      clampPage();
+      savePlace();
+      render(o.focus !== undefined ? o.focus : 'first-empty-visible');
+      savePlace();
       requestAnimationFrame(() => {
         const emptyEl = [...nodesEl.querySelectorAll('.root-node')].find((el) => {
           const i = Number(el.dataset.idx);
@@ -989,8 +1013,7 @@
 
     function updateNav() {
       const p = getParentNode();
-      // Back button + header (parent word only, no count, no Root).
-      backBtn.style.display = p ? '' : 'none';
+      // Header (parent word only, no count, no Root).
       if (p) {
         const pw = (p.word || '').trim() || '(empty)';
         levelTitle.textContent = pw;
@@ -1120,6 +1143,7 @@
       solid.classList.remove('blur-out');
       solid.classList.remove('solid-unblur');
       wrap.classList.remove('show');
+      solid.setAttribute('aria-label', 'Edit ' + word);
       if (openBtn) {
         openBtn.style.display = '';
         openBtn.setAttribute('aria-label', 'Open ' + word);
@@ -1172,6 +1196,9 @@
       const solid = document.createElement('div');
       solid.className = 'solid-text';
       solid.title = 'Click to edit';
+      solid.tabIndex = 0;
+      solid.setAttribute('role', 'button');
+      solid.setAttribute('aria-label', 'Edit node');
       const openBtn = document.createElement('button');
       openBtn.className = 'open-btn';
       openBtn.type = 'button';
@@ -1254,6 +1281,14 @@
           showInput(nodeEl, true);
         }, 250);
       });
+      // Keyboard nav (v0.0.30): Enter on a focused solid opens edit, same as click.
+      solid.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          solid.click();
+        }
+      });
+      solid.addEventListener('focus', () => updateStatus());
       openBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const target = nodeIdAt(idx);
@@ -1330,6 +1365,7 @@
           if (pages[p].includes(emptyPos)) { page = p; break; }
         }
         render(emptyPos);
+        savePlace();
         const el = nodesEl.querySelector('.root-node[data-idx="' + emptyPos + '"]');
         const inp = el && el.querySelector('.root-input');
         if (inp) rejectEmpty(inp);
@@ -1341,8 +1377,8 @@
       const pages = computePages(currentSize());
       page = pages.length - 1;
       render(currentSize() - 1);
+      savePlace();
     });
-    backBtn.addEventListener('click', goBack);
     if (homeBtn) homeBtn.addEventListener('click', () => navigateTo(null));
     if (levelBackBtn) levelBackBtn.addEventListener('click', goBack);
     if (crumbToggleBtn) crumbToggleBtn.addEventListener('click', () => {
@@ -1350,11 +1386,92 @@
       updateNav();
     });
     pageUp.addEventListener('click', () => {
-      if (page > 0) { page--; render(); }
+      if (page > 0) { page--; render(); savePlace(); }
     });
     pageDown.addEventListener('click', () => {
       const pages = computePages(currentSize());
-      if (page < pages.length - 1) { page++; render(); }
+      if (page < pages.length - 1) { page++; render(); savePlace(); }
+    });
+
+    // Keyboard up/down navigation (v0.0.30): moves focus across nodes in the
+    // current level, turning pages as needed. Scoped to currentParentId via
+    // currentList()/computePages(). Typing is never hijacked: arrows inside a
+    // non-empty input keep caret behavior; an empty waiting input still moves
+    // (no caret to protect, keeps Down->node2 working after landing on an
+    // empty node1). Solids are tabindex=0 so they can receive focus.
+    function focusableForNodeEl(el) {
+      if (!el) return null;
+      const input = el.querySelector('.root-input');
+      const wrap = el.querySelector('.solid-wrap');
+      const solid = el.querySelector('.solid-text');
+      if (input && (input.classList.contains('show') || input.classList.contains('edit-pop'))) return input;
+      if (solid && wrap && wrap.classList.contains('show')) return solid;
+      return input || solid;
+    }
+    function pageForPos(pages, pos) {
+      for (let p = 0; p < pages.length; p++) {
+        if (pages[p].indexOf(pos) !== -1) return p;
+      }
+      return 0;
+    }
+    // Focus by node id (not bare index): blurring an empty waiting input
+    // during render/focus can auto-prune it (existing validation), shifting
+    // indices — id resolve + retry keeps focus on the intended node.
+    function focusById(targetId, fallbackPos) {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const fresh = currentList();
+        if (fresh.length === 0) return false;
+        let fp = targetId ? fresh.findIndex((n) => n.id === targetId) : -1;
+        if (fp === -1) fp = Math.max(0, Math.min(fallbackPos, fresh.length - 1));
+        const pg = pageForPos(computePages(fresh.length), fp);
+        if (pg !== page) { page = pg; render(); savePlace(); continue; }
+        const el = nodesEl.querySelector('.root-node[data-idx="' + fp + '"]');
+        const t = focusableForNodeEl(el);
+        if (!t) { render(); continue; }
+        try { t.focus({ preventScroll: true }); } catch (_) { t.focus(); }
+        if (document.activeElement === t) {
+          if (t.classList && t.classList.contains('root-input')) requestAnimationFrame(updateCaret);
+          else updateStatus();
+          return true;
+        }
+        // Focus lost to a blur-triggered prune+render; retry by id.
+      }
+      return false;
+    }
+    function stepFocus(dir) {
+      const list = currentList();
+      if (list.length === 0) return;
+      const ae = document.activeElement;
+      const nodeEl = ae && ae.closest ? ae.closest('.root-node') : null;
+      let curPos = -1;
+      if (nodeEl && nodesEl.contains(nodeEl)) {
+        const cid = nodeEl.dataset ? nodeEl.dataset.nodeId : null;
+        curPos = cid ? list.findIndex((n) => n.id === cid) : -1;
+        if (curPos === -1) {
+          const gi = Number(nodeEl.dataset ? nodeEl.dataset.idx : NaN);
+          curPos = Number.isFinite(gi) && gi >= 0 && gi < list.length ? gi : -1;
+        }
+      }
+      let targetPos;
+      if (curPos === -1) {
+        targetPos = dir > 0 ? 0 : list.length - 1;
+      } else {
+        targetPos = curPos + dir;
+        if (targetPos < 0 || targetPos >= list.length) return;
+      }
+      const targetId = list[targetPos] ? list[targetPos].id : null;
+      focusById(targetId, targetPos);
+    }
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      if (e.altKey || e.metaKey || e.ctrlKey) return;
+      const t = e.target;
+      if (t && t.tagName === 'TEXTAREA') return;
+      if (t && t.tagName === 'INPUT') {
+        if (String(t.value || '').trim() !== '') return;
+      }
+      e.preventDefault();
+      stepFocus(e.key === 'ArrowDown' ? 1 : -1);
     });
 
     window.addEventListener('resize', updateCaret);
@@ -1367,9 +1484,9 @@
     }, 800);
 
     // Init: graph drives center. Migrate legacy keys if present.
+    // loadNodes restores saved parent/page (v0.0.32, validated); no reset.
     loadNodes();
-    currentParentId = null;
-    page = 0;
+    clampPage();
     render('first-empty-visible');
     // Autofocus first empty visible input on load (waiting state).
     requestAnimationFrame(() => {
@@ -1402,13 +1519,12 @@
         const push = (el, id) => { if (el && isVisibleEl(el)) out.push({ el, id }); };
         push(document.getElementById('round-btn'), 'write-btn');
         push(document.getElementById('stage'), 'stage');
-        push(document.getElementById('back-btn'), 'back-top');
         push(document.getElementById('level-title'), 'level-title');
         push(document.getElementById('page-up'), 'page-up');
         push(document.getElementById('page-down'), 'page-down');
         push(document.getElementById('add-node-btn'), 'add-btn');
         push(document.getElementById('home-btn'), 'home-btn');
-        push(document.getElementById('level-back-btn'), 'back-bottom');
+        push(document.getElementById('level-back-btn'), 'back-btn');
         push(document.getElementById('crumb-toggle-btn'), 'crumb-toggle-btn');
         push(document.getElementById('status'), 'status');
         push(document.getElementById('version'), 'version');
