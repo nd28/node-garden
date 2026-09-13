@@ -3,6 +3,12 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.70] - 2026-09-13 - Even stage spacing top + list + nav
+
+- `#stage` `gap: 12px` -> `gap: clamp(12px, 3vh, 28px)` so top/list/nav breathe evenly on short/tall viewports; `body overflow:hidden` (no scroll) + paging fit kept.
+- `#nodes` gains `margin: 4px 0`; `#add-node-btn` gains `margin: 6px auto`; `#level-nav` gains `margin-top: 8px`; `#level-title` gains `margin-bottom: 6px`; `#node-body` gains `margin-bottom: 8px`.
+- Kept: responsive clamped node gaps, drill, body, knobs, mono/darkmode, corners glide, validation, Alt peek, hot reload.
+
 ## [v0.0.69] - 2026-09-13 - Corner focus translate glide
 
 - Focus corners glide outward on focus: unfocused corners sit 4px inward (`tl translate(4px,4px)`, `tr (-4px,4px)`, `bl (4px,-4px)`, `br (-4px,-4px)`) + small `10px`, focused settles to `translate(0,0)` + larger `14px` + outward offsets (`-6px`/`-10px`); `transform 0.2s ease` added to the existing `opacity/width/height/top/right/bottom/left` transition, animate-in only.

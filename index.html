@@ -1,4 +1,4 @@
-<!-- button-app v0.0.69 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.70 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,13 +38,14 @@
     opacity: 0;
     pointer-events: none;
   }
-  /* Stage: vertical stack centered (pager + nodes + add). Not scrollable. */
+  /* Stage: vertical stack centered (pager + nodes + add). Not scrollable.
+     v0.0.70: even spacing top + list + nav via responsive gap. */
   #stage {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: clamp(12px, 3vh, 28px);
     max-height: 100vh;
     overflow: visible;
   }
@@ -53,8 +54,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* v0.0.63: responsive clamped gap (min 8px, max 24px) so paging 3 fits without scroll. */
+    /* v0.0.63: responsive clamped gap (min 8px, max 24px) so paging 3 fits without scroll.
+       v0.0.70: even top/list/nav spacing — small vertical margin. */
     gap: clamp(8px, 2.5vh, 24px);
+    margin: 4px 0;
     overflow: visible;
   }
   /* v0.0.63: show-4 tighter clamp (min 4px, max 12px). */
@@ -337,7 +340,8 @@
   }
   .pager-btn:hover { background: #eee; }
   .pager-btn:active { transform: scale(0.94); }
-  /* Add-node button (v0.0.33: sole primary): filled black, bold, ~24px, rounded 8px, "+" text, random bounce via JS. Page font. */
+  /* Add-node button (v0.0.33: sole primary): filled black, bold, ~24px, rounded 8px, "+" text, random bounce via JS. Page font.
+     v0.0.70: margin 6px auto for even list/nav spacing. */
   #add-node-btn {
     width: 24px;
     height: 24px;
@@ -350,18 +354,21 @@
     line-height: 1;
     cursor: pointer;
     font-family: var(--page-font);
+    margin: 6px auto;
     transition: transform 0.7s ease, background 0.15s ease;
   }
   #add-node-btn:hover { background: #222; }
   #add-node-btn:active { transform: scale(0.94); }
   /* Level nav (v0.0.28, v0.0.56 pagers in row): Home + Back + page-up/down + crumb-toggle.
-     Visible when inside OR paging (root pagers still reachable). */
+     Visible when inside OR paging (root pagers still reachable).
+     v0.0.70: margin-top 8px for even list/nav spacing. */
   #level-nav {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    margin-top: 8px;
   }
   #home-btn, #level-back-btn, #crumb-toggle-btn, #page-up, #page-down {
     width: 24px;
@@ -609,6 +616,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    margin-bottom: 6px;
   }
   /* Node body (v0.0.59, v0.0.61 tight 1.2, v0.0.62 dim 0.6): about-text for the open parent, below title.
      Always-editable textarea, page font small, dim placeholder, autogrow. */
@@ -632,6 +640,7 @@
     color: #000;
     caret-color: #000;
     padding: 0;
+    margin-bottom: 8px;
     white-space: pre-wrap;
     overflow-wrap: break-word;
     word-break: break-word;
@@ -796,7 +805,7 @@
   <button id="weight-btn" aria-label="Cycle node font weight" title="Cycle node font weight">B</button>
   <button id="size-btn" aria-label="Cycle node font size" title="Cycle node font size">A+</button>
   </div>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.69</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.70</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
