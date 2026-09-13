@@ -1,4 +1,4 @@
-<!-- button-app v0.0.66 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.67 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -244,20 +244,32 @@
      4 child .corner L shapes (tl/tr/bl/br, 14px, 2px borders), rest invisible.
      Gated by FEATURES.focusCorners (body.focus-corners) + :focus-within.
      No container box-shadow (keeps per-letter glow); shrink 0.98 + lift untouched.
+     v0.0.67: animate in only (no loop) — fade + grow 10px->14px + slight
+     outward move, 0.2s ease via opacity/size/offset transition; base stays
+     rendered at opacity:0 so the transition can run (no display toggle).
      Rollback: set flag false (or re-enable focusUnderline) + delete this block + dark block below. */
   body.focus-corners .root-node .corner {
-    display: none;
+    display: block;
     position: absolute;
-    width: 14px;
-    height: 14px;
+    width: 10px;
+    height: 10px;
     border: 0 solid rgba(0,0,0,0.35);
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease, width 0.2s ease, height 0.2s ease, top 0.2s ease, right 0.2s ease, bottom 0.2s ease, left 0.2s ease;
   }
-  body.focus-corners .root-node:focus-within .corner { display: block; }
-  body.focus-corners .root-node .corner.tl { top: -6px; left: -10px; border-top-width: 2px; border-left-width: 2px; border-top-left-radius: 2px; }
-  body.focus-corners .root-node .corner.tr { top: -6px; right: -10px; border-top-width: 2px; border-right-width: 2px; border-top-right-radius: 2px; }
-  body.focus-corners .root-node .corner.bl { bottom: -6px; left: -10px; border-bottom-width: 2px; border-left-width: 2px; border-bottom-left-radius: 2px; }
-  body.focus-corners .root-node .corner.br { bottom: -6px; right: -10px; border-bottom-width: 2px; border-right-width: 2px; border-bottom-right-radius: 2px; }
+  body.focus-corners .root-node:focus-within .corner { opacity: 1; width: 14px; height: 14px; }
+  body.focus-corners .root-node .corner.tl { top: -4px; left: -8px; border-top-width: 2px; border-left-width: 2px; border-top-left-radius: 2px; }
+  body.focus-corners .root-node .corner.tr { top: -4px; right: -8px; border-top-width: 2px; border-right-width: 2px; border-top-right-radius: 2px; }
+  body.focus-corners .root-node .corner.bl { bottom: -4px; left: -8px; border-bottom-width: 2px; border-left-width: 2px; border-bottom-left-radius: 2px; }
+  body.focus-corners .root-node .corner.br { bottom: -4px; right: -8px; border-bottom-width: 2px; border-right-width: 2px; border-bottom-right-radius: 2px; }
+  body.focus-corners .root-node:focus-within .corner.tl { top: -6px; left: -10px; }
+  body.focus-corners .root-node:focus-within .corner.tr { top: -6px; right: -10px; }
+  body.focus-corners .root-node:focus-within .corner.bl { bottom: -6px; left: -10px; }
+  body.focus-corners .root-node:focus-within .corner.br { bottom: -6px; right: -10px; }
+  @media (prefers-reduced-motion: reduce) {
+    body.focus-corners .root-node .corner { transition: none; }
+  }
   .root-input:focus, .root-input:focus-visible {
     text-shadow: 0 2px 6px rgba(0,0,0,0.25);
   }
@@ -697,7 +709,8 @@
     body.focus-underline .root-node:focus-within::after {
       background: rgba(255,255,255,0.25);
     }
-    /* EXPERIMENTAL v0.0.66 corners only: dark variant (white L shapes).
+    /* EXPERIMENTAL v0.0.66 corners only, v0.0.67 animate: dark variant (white L shapes).
+       Animation (opacity/size/offset transition) inherits from light block; no dark change.
        Rollback with light block above. */
     body.focus-corners .root-node .corner {
       border-color: rgba(255,255,255,0.35);
@@ -781,7 +794,7 @@
   <button id="weight-btn" aria-label="Cycle node font weight" title="Cycle node font weight">B</button>
   <button id="size-btn" aria-label="Cycle node font size" title="Cycle node font size">A+</button>
   </div>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.66</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.67</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -801,9 +814,10 @@
     // EXPERIMENTAL v0.0.64, v0.0.65 gap fix rollback ready (single commit): focusUnderline adds a
     // dim thick bottom outline under the focused node. Set false to disable
     // (easy off, no other changes needed). Awaiting feedback before keeping.
-    // EXPERIMENTAL v0.0.66: focusCorners adds camera-shutter corner L shapes
+    // EXPERIMENTAL v0.0.66, v0.0.67 animate: focusCorners adds camera-shutter corner L shapes
     // (tl/tr/bl/br) on the focused node; bottom underline OFF (code kept for
-    // rollback). Set focusCorners false to disable.
+    // rollback). v0.0.67: corners fade + grow 10px->14px + outward move, 0.2s
+    // ease, animate-in only (no loop). Set focusCorners false to disable.
     const FEATURES = { ripple: false, focusUnderline: false, focusCorners: true };
     function shouldRipple() {
       try {
@@ -825,7 +839,7 @@
       if (fu) document.body.classList.add('focus-underline');
       else console.log('[features] focus-underline off');
     } catch (_) {}
-    // EXPERIMENTAL v0.0.66: gate corner L-shape CSS behind
+    // EXPERIMENTAL v0.0.66, v0.0.67 animate: gate corner L-shape CSS behind
     // body.focus-corners so FEATURES.focusCorners=false removes it.
     try {
       let fc = !!FEATURES.focusCorners;
@@ -1969,8 +1983,9 @@
       nodeEl.dataset.idx = String(idx);
       const nid = nodeIdAt(idx);
       if (nid) nodeEl.dataset.nodeId = nid;
-      // EXPERIMENTAL v0.0.66 focus corners: 4 shutter L shapes, visibility
-      // gated by body.focus-corners + :focus-within (always rendered).
+    // EXPERIMENTAL v0.0.66 focus corners, v0.0.67 animate: 4 shutter L shapes, visibility
+      // gated by body.focus-corners + :focus-within opacity (always rendered,
+      // base opacity:0 so the 0.2s fade/grow transition can run).
       for (const pos of ['tl', 'tr', 'bl', 'br']) {
         const c = document.createElement('div');
         c.className = 'corner ' + pos;

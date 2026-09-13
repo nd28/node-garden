@@ -3,6 +3,12 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.67] - 2026-09-13 - Animate focus corners in (fade + grow, no loop)
+- Focus corners animate in only (no pulse loop, avoids distraction): `opacity 0->1` + size `10px->14px` + slight outward move (base `top/bottom:-4px`, `left/right:-8px` -> focused `top/bottom:-6px`, `left/right:-10px`), `0.2s ease` via `transition: opacity, width, height, top, right, bottom, left`; `prefers-reduced-motion: reduce` disables the transition.
+- Base `.corner` stays rendered at `opacity:0` (`display:block`, was `display:none`/`block` toggle) so the transition can run; `:focus-within` flips to `opacity:1` + `14px` + outward offsets; `pointer-events:none`, `2px` L borders, dim `rgba(0,0,0,0.35)` light / `rgba(255,255,255,0.35)` dark unchanged.
+- Kept: per-letter glow, shrink `0.98` + lift, mono/darkmode, responsive clamped gaps, drill, body, knobs, arrows, validation, Alt peek, hot reload. Loop-later flag: add a `cornerPulse` keyframes + `animation` on `:focus-within .corner` if a gentle pulse is ever wanted.
+- Rollback: revert this entry + the `v0.0.67` corner CSS (base/positions/transition + `prefers-reduced-motion`) back to the `v0.0.66` `display:none/block` block.
+
 ## [v0.0.66] - 2026-09-13 - EXPERIMENTAL focus corners (bottom off, rollback ready)
 - EXPERIMENTAL (awaiting feedback, rollback ready in a single commit): camera-shutter corner focus UI replaces the bottom outline — 4 child `.corner` L shapes per `.root-node` (`tl/tr/bl/br`, `14px`, `2px` borders, `dim rgba(0,0,0,0.35)` light / `rgba(255,255,255,0.35)` dark, `position:absolute` outside node padding `top/bottom:-6px`, `left/right:-10px`), rest invisible; shown only on `body.focus-corners .root-node:focus-within .corner` (`display:block`, else `display:none`, `pointer-events:none`).
 - Gated by `const FEATURES.focusCorners = true` (easy off: set `false`, optional `localStorage 'feat-focus-corners'` override `'1'/'true'`); JS adds `body.focus-corners` only when on, same pattern as underline gate.
