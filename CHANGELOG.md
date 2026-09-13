@@ -3,6 +3,12 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.75] - 2026-09-13 - credit beside version in foot cluster
+
+- New `#foot-right` cluster (fixed `bottom:8px` `right:12px`, flex row `gap:8px`): `?` button + `#credit` + `#version` side by side, credit left of version, tiny `10px` mono `opacity:0.3` silent; old bottom-left `#credit` fixed removed so nothing overlaps `?`.
+- `#keys-tip-btn` is now the first item in the cluster (`position:static`, was fixed `right:64px`); tip card position/behavior untouched.
+- Kept: mono/darkmode, all features.
+
 ## [v0.0.74] - 2026-09-13 - credit footer
 
 - New dimmest silent `#credit` footer (`made by nd28 with muse spark 1.3`, tiny `10px` mono, `opacity:0.3`, fixed bottom-left above style toggle, `pointer-events:none`, no link): inherits body color so mono/darkmode just works.
