@@ -3,6 +3,13 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.71] - 2026-09-13 - Key shortcuts tip card
+
+- New tiny ghost `#keys-tip-btn` (`?`, 24px rounded 8px, fixed `bottom:8px` `right:64px` next to `#version` footer, page-font label, darkmode invert): toggles floating `#keys-tip-card` shortcut list (`aria-expanded` + `aria-haspopup`, `role="dialog"`).
+- `#keys-tip-card` mono pill card (`position:fixed` `bottom:40px` `right:12px`, `z-index:5000`, `12px` radius, `1px` border, `8px 12px` padding, `0 8px 24px` shadow, dim text `#555` light / `#999` dark, `12px` page font, `line-height:1.6`, `white-space:nowrap`): lines `Up / Down — move`, `Right — open`, `Left — back`, `+ — add`, `Enter — edit / save`, `Alt (hold) — peek IDs`, `Esc — close`; overlays content so toggle never shifts layout.
+- Dismiss on outside click (`document` click skips btn + card) + `Esc` (own `keydown` listener, crumbs/peek handlers untouched); Alt peek adds `keys-tip-btn` badge.
+- Kept: even stage spacing, arrows Up/Down walk, Right open, Left back, + add, Enter edit/solidify, Alt peek, Esc closes crumbs, all features.
+
 ## [v0.0.70] - 2026-09-13 - Even stage spacing top + list + nav
 
 - `#stage` `gap: 12px` -> `gap: clamp(12px, 3vh, 28px)` so top/list/nav breathe evenly on short/tall viewports; `body overflow:hidden` (no scroll) + paging fit kept.
