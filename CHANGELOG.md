@@ -3,6 +3,35 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.45] - 2026-09-13 - Letter-spacing cycler
+- New tiny ghost `#spacing-btn` (`↔`, 24px rounded 8px, fixed bottom-left at `left:42px` side by side with `#font-btn`, mono label, darkmode invert): cycles node letter-spacing `0em -> 0.04em -> 0.08em -> 0.12em -> back`.
+- `.solid-text` `letter-spacing:0.04em` -> `var(--node-spacing)`; `.root-input` gains `letter-spacing:var(--node-spacing)`; `:root` gains `--node-spacing:0.04em` default; fake-caret canvas fallback adds `letterSpacing*len`, mirror already copies `letterSpacing` so wrap caret stays aligned.
+- Persists in `localStorage 'node-spacing-idx'` (validated int, applied on load), click shows `Spacing <val>` (e.g. `Spacing 0.08em`) in `#status` for ~1.2s then `updateStatus()` restores; Alt peek adds `spacing-btn` badge.
+- Kept: fonts lazy, wrap textarea, mono, drill, paging, arrows, validation, prune, crumbs badge, primary/ghost, hot reload, ripple off.
+
+## [v0.0.44] - 2026-09-13 - Lexend + Inter Tight font trials
+- `NODE_FONTS` trial list gains `Lexend` (readable, wide: stack `"Lexend", system-ui, sans-serif`, css `Lexend:wght@400;700`) + `Inter Tight` (stack `"Inter Tight", system-ui, sans-serif`, css `Inter+Tight:wght@400;700`); cycle order now `System Mono -> JetBrains Mono -> IBM Plex Mono -> Space Mono -> System UI -> Georgia -> Lexend -> Inter Tight -> back`.
+- Lazy `ensureWebfont` mechanism unchanged (per-family sheet + on-demand preconnect, `loadedFontCss` once-guard, system fallback offline); shared `var(--node-font)` caret alignment kept; `document.fonts.ready` + rAF re-runs `autoGrow` + `updateCaret` so wrap textarea auto-grow stays correct with new fonts.
+- Kept: persist `node-font-idx`, `Font: <name>` status flash, Alt `font-btn` badge, all features.
+
+## [v0.0.43] - 2026-09-13 - Word wrap for node text
+- `.solid-text` wraps: `display:inline-block`, `white-space:normal`, `overflow-wrap:break-word`, `word-break:break-word`, `max-width:min(70vw,480px)`, `text-align:center`, `line-height:1.3`; spaces render as plain breaking text nodes (was `\u00A0` no-break) so lines break between words, letters stay `inline-block` (thicken transform kept) with break opportunities between them for long words; `.letter` uses `line-height:inherit`; `.solid-wrap` gains `max-width:92vw`.
+- `.root-input` is now `<textarea rows=1 wrap=soft>` (was `<input type=text>`): `resize:none`, `overflow:hidden`, `pre-wrap` + `break-word`, same `max-width`, `line-height:1.3`, `field-sizing:content` + JS `autoGrow()` (height follows `scrollHeight`, called on input/focus/show/render/resize/font-switch); `Enter` solidifies via `preventDefault` (no newlines, pasted `\r\n` collapsed to space), title-case/caret preservation, `maxLength=60` validation, `Enter`/blur/arrows (`TEXTAREA.root-input` empty-check like `INPUT`) all kept.
+- Fake caret goes multiline via hidden mirror (`caretPosWrapped`: same width/font/align/break rules, marker at caret for wrapped x/y, single-line `lineHeight*0.85` bar); canvas single-line math kept as fallback.
+- Kept: mono, `var(--node-font)`, thick caret, blur/fade, validation max 60, paging, drill, crumbs, Alt peek, hot reload, ripple off.
+
+## [v0.0.42] - 2026-09-13 - Lazy-load node webfonts
+- Removed blocking Google Fonts `<link>` (+ head preconnects) from `index.html` head: initial paint uses system mono only, zero font CSS fetched upfront.
+- `#font-btn` cycle order unchanged (`System Mono -> JetBrains Mono -> IBM Plex Mono -> Space Mono -> System UI -> Georgia`): first switch to a webfont injects that family's sheet only (`css2?family=<fam>&display=swap`, `data-lazy-font`), plus on-demand `preconnect` to `fonts.googleapis.com` / `fonts.gstatic.com` (`data-lazy-preconnect`); each family loads once (`loadedFontCss` guard).
+- `NODE_FONTS` gains per-entry `css` slug (`null` for system stacks); `ensureWebfont(i)` before `--node-font` set in `applyFont` + on load for persisted `node-font-idx`; `document.fonts.ready` re-runs `updateCaret`; shared `var(--node-font)` caret alignment kept; offline keeps system-mono fallback via stack (`onerror` just allows retry).
+- Kept: persist `node-font-idx`, `Font: <name>` status flash, Alt `font-btn` badge, all features.
+
+## [v0.0.41] - 2026-09-13 - Font trial switcher
+- New tiny ghost `#font-btn` (`Aa`, 24px rounded 8px, fixed bottom-left footer, mono label, darkmode invert): cycles node font `System Mono -> JetBrains Mono -> IBM Plex Mono -> Space Mono -> System UI -> Georgia -> back`.
+- Node + input share `var(--node-font)` (`.root-input` + `.solid-text` both use it, so canvas-measured fake caret stays aligned); webfonts via Google Fonts `display=swap` link (JetBrains Mono 400/800, IBM Plex Mono 400/700, Space Mono 400/700) with system-mono fallbacks.
+- Persists in `localStorage 'node-font-idx'` (validated int, applied on load), click shows `Font: <name>` in `#status` for ~1.2s then `updateStatus()` restores; Alt peek adds `font-btn` badge.
+- Kept: mono colors, drill, paging, arrows, validation, prune, crumbs badge, primary/ghost, hot reload, ripple off.
+
 ## [v0.0.40] - 2026-09-13 - Crumb toggle depth badge
 - `#crumb-toggle-btn` gets tiny `#crumb-count` badge (`absolute -4px` top-right, `12px` circle, mono `9px/12px`, filled black/white text light, inverted dark, `pointer-events:none` on ghost button): shows depth level `= crumbPath().length` (`1,2,...` inside, cleared at root where toggle is hidden), updated in `updateNav`.
 - Kept: mono, per-letter glow, shrink/lift, drill, paging, arrows, validation, prune, crumbs toggle, Alt peek, hot reload, ripple off.

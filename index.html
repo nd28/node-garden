@@ -1,4 +1,4 @@
-<!-- button-app v0.0.40 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.45 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Round Button</title>
 <style>
-  :root { color-scheme: light dark; }
+  :root { color-scheme: light dark; --node-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; --node-spacing: 0.04em; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
   body {
@@ -73,15 +73,27 @@
     border: none;
     outline: none;
     background: transparent;
+    font-family: var(--node-font);
     font-size: 2rem;
+    letter-spacing: var(--node-spacing);
     text-align: center;
     min-width: 200px;
+    width: auto;
+    max-width: min(70vw, 480px);
     caret-color: #000;
     color: #000;
     text-transform: none;
     transform: scale(0);
     opacity: 0;
     border-radius: 8px;
+    resize: none;
+    overflow: hidden;
+    padding: 0;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.3;
+    field-sizing: content;
     transition: scale 0.18s ease, translate 0.18s ease, transform 0.18s ease, text-shadow 0.18s ease;
   }
   #nodes.show-4 .root-input { font-size: 1.6rem; }
@@ -144,6 +156,7 @@
     justify-content: center;
     gap: 8px;
     min-width: 200px;
+    max-width: 92vw;
     min-height: 80px;
   }
   #nodes.show-4 .solid-wrap { min-height: 60px; }
@@ -168,16 +181,20 @@
   }
   .solid-text {
     position: relative;
-    display: inline-flex;
-    align-items: center;
+    display: inline-block;
     vertical-align: middle;
     margin: 0;
     padding: 0;
+    font-family: var(--node-font);
     font-size: 2rem;
-    line-height: 1;
+    line-height: 1.3;
     text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: min(70vw, 480px);
     color: #000;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--node-spacing);
     text-shadow: 0 1px 0 #fff, 0 -1px 1px rgba(0,0,0,0.3);
     cursor: pointer;
     user-select: none;
@@ -224,8 +241,8 @@
   }
   .solid-text .letter {
     display: inline-block;
-    line-height: 1;
-    vertical-align: middle;
+    line-height: inherit;
+    vertical-align: baseline;
     font-weight: 400;
     transition: text-shadow 0.18s ease;
     animation: thicken-press 0.45s ease forwards;
@@ -320,6 +337,54 @@
     text-align: center;
     pointer-events: none;
   }
+  /* Font trial switcher (v0.0.41): tiny ghost "Aa" fixed bottom-left footer. */
+  #font-btn {
+    position: fixed;
+    bottom: 8px;
+    left: 12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: transparent;
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #font-btn:hover { background: #eee; }
+  #font-btn:active { transform: scale(0.94); }
+  /* Spacing cycler (v0.0.45): tiny ghost fixed bottom-left next to font btn. */
+  #spacing-btn {
+    position: fixed;
+    bottom: 8px;
+    left: 42px;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: transparent;
+    color: #000;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #spacing-btn:hover { background: #eee; }
+  #spacing-btn:active { transform: scale(0.94); }
   /* Drill nav: crumbs (mono) + level title (system font, parent word only). */
   #nav-bar {
     display: flex;
@@ -458,6 +523,10 @@
     #home-btn, #level-back-btn, #crumb-toggle-btn { background: transparent; color: #fff; border-color: #fff; }
     #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #222; }
     #crumb-count { background: #fff; color: #000; }
+    #font-btn { background: transparent; color: #fff; border-color: #fff; }
+    #font-btn:hover { background: #222; }
+    #spacing-btn { background: transparent; color: #fff; border-color: #fff; }
+    #spacing-btn:hover { background: #222; }
     .crumb-btn { border-color: #fff; color: #fff; }
     .crumb-btn:hover { background: #fff; color: #000; }
     .crumb-btn.current { background: #fff; color: #000; }
@@ -490,7 +559,9 @@
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.40</a></div>
+  <button id="font-btn" aria-label="Try next node font" title="Try next node font">Aa</button>
+  <button id="spacing-btn" aria-label="Cycle node letter-spacing" title="Cycle node letter-spacing">&#8596;</button>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.45</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -516,6 +587,127 @@
       return !!FEATURES.ripple;
     }
     if (!shouldRipple()) console.log('[features] ripple off');
+
+    // Font trial switcher (v0.0.42 lazy): cycles node font stack for .root-input +
+    // .solid-text (shared var(--node-font) so the fake caret stays aligned via
+    // getComputedStyle measurement). No font CSS in <head>: initial paint is
+    // system mono. First cycle to a webfont injects its Google Fonts sheet only
+    // (display=swap) + on-demand preconnect; stack fallback covers offline.
+    // Persists in 'node-font-idx'.
+    const LS_FONT = 'node-font-idx';
+    const NODE_FONTS = [
+      { name: 'System Mono', stack: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', css: null },
+      { name: 'JetBrains Mono', stack: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', css: 'JetBrains+Mono:wght@400;800' },
+      { name: 'IBM Plex Mono', stack: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', css: 'IBM+Plex+Mono:wght@400;700' },
+      { name: 'Space Mono', stack: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', css: 'Space+Mono:wght@400;700' },
+      { name: 'System UI', stack: 'system-ui, -apple-system, "Segoe UI", sans-serif', css: null },
+      { name: 'Georgia', stack: 'Georgia, "Times New Roman", serif', css: null },
+      { name: 'Lexend', stack: '"Lexend", system-ui, sans-serif', css: 'Lexend:wght@400;700' },
+      { name: 'Inter Tight', stack: '"Inter Tight", system-ui, sans-serif', css: 'Inter+Tight:wght@400;700' },
+    ];
+    const loadedFontCss = {};
+    function ensurePreconnect() {
+      try {
+        if (!document.querySelector('link[data-lazy-preconnect]')) {
+          const p1 = document.createElement('link');
+          p1.rel = 'preconnect';
+          p1.href = 'https://fonts.googleapis.com';
+          p1.setAttribute('data-lazy-preconnect', '1');
+          document.head.appendChild(p1);
+          const p2 = document.createElement('link');
+          p2.rel = 'preconnect';
+          p2.href = 'https://fonts.gstatic.com';
+          p2.crossOrigin = '';
+          p2.setAttribute('data-lazy-preconnect', '1');
+          document.head.appendChild(p2);
+        }
+      } catch (_) {}
+    }
+    function ensureWebfont(i) {
+      const f = NODE_FONTS[i];
+      if (!f || !f.css || loadedFontCss[f.css]) return;
+      try {
+        ensurePreconnect();
+        const l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://fonts.googleapis.com/css2?family=' + f.css + '&display=swap';
+        l.setAttribute('data-lazy-font', f.name);
+        // Offline: stack already falls back to system mono; allow retry.
+        l.onerror = () => { try { delete loadedFontCss[f.css]; } catch (_) {} };
+        document.head.appendChild(l);
+        loadedFontCss[f.css] = l;
+      } catch (_) {}
+    }
+    let fontIdx = 0;
+    try {
+      const rf = localStorage.getItem(LS_FONT);
+      if (rf !== null) {
+        const nf = parseInt(rf, 10);
+        if (Number.isFinite(nf) && nf >= 0 && nf < NODE_FONTS.length) fontIdx = nf;
+      }
+    } catch (_) {}
+    let fontStatusTimer = null;
+    function applyFont(i, silent) {
+      fontIdx = ((i % NODE_FONTS.length) + NODE_FONTS.length) % NODE_FONTS.length;
+      ensureWebfont(fontIdx);
+      try { document.documentElement.style.setProperty('--node-font', NODE_FONTS[fontIdx].stack); } catch (_) {}
+      try { localStorage.setItem(LS_FONT, String(fontIdx)); } catch (_) {}
+      if (!silent) {
+        try { status.textContent = 'Font: ' + NODE_FONTS[fontIdx].name; } catch (_) {}
+        if (fontStatusTimer) clearTimeout(fontStatusTimer);
+        fontStatusTimer = setTimeout(() => { try { updateStatus(); } catch (_) {} }, 1200);
+      }
+      try {
+        if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+          document.fonts.ready.then(() => requestAnimationFrame(() => {
+            try {
+              document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+            } catch (_) {}
+            updateCaret();
+          })).catch(() => {});
+        }
+      } catch (_) {}
+      requestAnimationFrame(() => {
+        try {
+          document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+        } catch (_) {}
+        updateCaret();
+      });
+    }
+    ensureWebfont(fontIdx);
+    try { document.documentElement.style.setProperty('--node-font', NODE_FONTS[fontIdx].stack); } catch (_) {}
+
+    // Letter-spacing cycler (v0.0.45): cycles node spacing for .root-input +
+    // .solid-text via shared var(--node-spacing). 4 steps, persists in
+    // 'node-spacing-idx', status flashes "Spacing <val>".
+    const LS_SPACING = 'node-spacing-idx';
+    const NODE_SPACINGS = ['0em', '0.04em', '0.08em', '0.12em'];
+    let spacingIdx = 1;
+    try {
+      const rs = localStorage.getItem(LS_SPACING);
+      if (rs !== null) {
+        const ns = parseInt(rs, 10);
+        if (Number.isFinite(ns) && ns >= 0 && ns < NODE_SPACINGS.length) spacingIdx = ns;
+      }
+    } catch (_) {}
+    let spacingStatusTimer = null;
+    function applySpacing(i, silent) {
+      spacingIdx = ((i % NODE_SPACINGS.length) + NODE_SPACINGS.length) % NODE_SPACINGS.length;
+      try { document.documentElement.style.setProperty('--node-spacing', NODE_SPACINGS[spacingIdx]); } catch (_) {}
+      try { localStorage.setItem(LS_SPACING, String(spacingIdx)); } catch (_) {}
+      if (!silent) {
+        try { status.textContent = 'Spacing ' + NODE_SPACINGS[spacingIdx]; } catch (_) {}
+        if (spacingStatusTimer) clearTimeout(spacingStatusTimer);
+        spacingStatusTimer = setTimeout(() => { try { updateStatus(); } catch (_) {} }, 1200);
+      }
+      requestAnimationFrame(() => {
+        try {
+          document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+        } catch (_) {}
+        updateCaret();
+      });
+    }
+    try { document.documentElement.style.setProperty('--node-spacing', NODE_SPACINGS[spacingIdx]); } catch (_) {}
 
     function toTitleCase(s) {
       return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
@@ -970,10 +1162,52 @@
     }
 
     // Shared thick (4px) fake caret for whichever .root-input is focused.
+    // Textarea auto-grow (v0.0.43 wrap): single-line words, soft-wrapped
+    // display. Height follows scrollHeight so no scrollbar appears.
+    function autoGrow(el) {
+      if (!el) return;
+      try {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+      } catch (_) {}
+    }
     function caretTextWidth(input, text) {
       const cs = getComputedStyle(input);
       caretMeas.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
-      return caretMeas.measureText(text || '').width;
+      const w = caretMeas.measureText(text || '').width;
+      const ls = parseFloat(cs.letterSpacing) || 0;
+      return w + ls * String(text || '').length;
+    }
+    // Hidden mirror for soft-wrapped caret position (v0.0.43): same width,
+    // font, alignment and break rules as the textarea; marker at the caret
+    // gives the wrapped line x/y. Falls back to single-line math.
+    const caretMirror = document.createElement('div');
+    caretMirror.setAttribute('aria-hidden', 'true');
+    caretMirror.style.cssText = 'position:fixed;top:-9999px;left:-9999px;visibility:hidden;pointer-events:none;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;padding:0;border:none;';
+    try { document.body.appendChild(caretMirror); } catch (_) {}
+    function caretPosWrapped(input, pos) {
+      try {
+        const cs = getComputedStyle(input);
+        const w = input.clientWidth;
+        if (!w) return null;
+        caretMirror.style.width = w + 'px';
+        caretMirror.style.fontFamily = cs.fontFamily;
+        caretMirror.style.fontSize = cs.fontSize;
+        caretMirror.style.fontWeight = cs.fontWeight;
+        caretMirror.style.lineHeight = cs.lineHeight;
+        caretMirror.style.letterSpacing = cs.letterSpacing;
+        caretMirror.style.textAlign = cs.textAlign;
+        caretMirror.textContent = '';
+        const val = input.value || '';
+        const pre = document.createTextNode(val.slice(0, pos));
+        const marker = document.createElement('span');
+        marker.textContent = '\u200B';
+        const post = document.createTextNode(val.slice(pos));
+        caretMirror.appendChild(pre);
+        caretMirror.appendChild(marker);
+        caretMirror.appendChild(post);
+        return { x: marker.offsetLeft, y: marker.offsetTop, h: marker.offsetHeight || null };
+      } catch (_) { return null; }
     }
     function updateCaret() {
       const input = document.activeElement;
@@ -988,6 +1222,19 @@
       try { if (input.selectionStart !== input.selectionEnd) { fakeCaret.classList.remove('on'); return; } } catch (_) {}
       const rect = input.getBoundingClientRect();
       if (rect.width === 0) { fakeCaret.classList.remove('on'); return; }
+      const cs = getComputedStyle(input);
+      const fs = parseFloat(cs.fontSize) || 32;
+      const lh = parseFloat(cs.lineHeight) || fs * 1.3 || 34;
+      const h = Math.round(lh * 0.85) || 34;
+      const wrapped = caretPosWrapped(input, pos);
+      if (wrapped) {
+        const top = rect.top + wrapped.y - (input.scrollTop || 0);
+        fakeCaret.style.height = h + 'px';
+        fakeCaret.style.left = Math.round(rect.left + wrapped.x - 2) + 'px';
+        fakeCaret.style.top = Math.round(top + ((wrapped.h || lh) - h) / 2) + 'px';
+        fakeCaret.classList.add('on');
+        return;
+      }
       const val = input.value || '';
       const fullW = caretTextWidth(input, val);
       const preW = caretTextWidth(input, val.slice(0, pos));
@@ -998,7 +1245,6 @@
       } else {
         x = rect.left + preW - (input.scrollLeft || 0);
       }
-      const h = Math.round(rect.height * 0.85) || 34;
       fakeCaret.style.height = h + 'px';
       fakeCaret.style.left = Math.round(x - 2) + 'px';
       fakeCaret.style.top = Math.round(rect.top + (rect.height - h) / 2) + 'px';
@@ -1062,7 +1308,7 @@
         });
         if (emptyEl) {
           const input = emptyEl.querySelector('.root-input');
-          if (input) { input.focus(); hideCaretDelayed(); }
+          if (input) { autoGrow(input); input.focus(); hideCaretDelayed(); }
         }
         updateStatus();
       });
@@ -1155,6 +1401,7 @@
       }
       input.focus();
       try { input.setSelectionRange(input.value.length, input.value.length); } catch (_) {}
+      autoGrow(input);
       hideCaretDelayed();
       updateStatus();
     }
@@ -1194,9 +1441,13 @@
       input.classList.remove('fade-blur-out');
       solid.innerHTML = '';
       [...word].forEach((ch) => {
+        // Spaces stay plain breaking text nodes so lines wrap between
+        // words; letters stay inline-block (thicken transform needs it)
+        // with break opportunities between them for long words.
+        if (ch === ' ') { solid.appendChild(document.createTextNode(' ')); return; }
         const sp = document.createElement('span');
         sp.className = 'letter';
-        sp.textContent = ch === ' ' ? '\u00A0' : ch;
+        sp.textContent = ch;
         if (!animate) {
           sp.style.animation = 'none';
           sp.style.fontWeight = '800';
@@ -1243,12 +1494,17 @@
       if (nid) nodeEl.dataset.nodeId = nid;
 
       const pw0 = parentWord();
-      const input = document.createElement('input');
+      // v0.0.43 wrap: textarea rows=1 soft-wrap auto-grow (single-line
+      // words, Enter solidifies, no newlines). Keeps title-case,
+      // validation, Enter/blur, arrows, caret via shared handlers.
+      const input = document.createElement('textarea');
       input.className = 'root-input';
-      input.type = 'text';
+      input.rows = 1;
+      input.wrap = 'soft';
       input.placeholder = pw0 ? 'Add to ' + pw0 + '...' : '';
       input.autocomplete = 'off';
       input.maxLength = MAX_WORD_LEN;
+      input.setAttribute('aria-label', 'Node text');
       input.value = getWordAt(idx) || '';
       input.style.caretColor = 'transparent';
 
@@ -1277,16 +1533,18 @@
       input.addEventListener('input', () => {
         let start = 0, end = 0;
         try { start = input.selectionStart; end = input.selectionEnd; } catch (_) {}
-        input.value = toTitleCase(input.value);
+        input.value = toTitleCase(String(input.value).replace(/[\r\n]+/g, ' '));
         try { input.setSelectionRange(start, end); } catch (_) {}
+        autoGrow(input);
         requestAnimationFrame(updateCaret);
       });
       input.addEventListener('keyup', () => requestAnimationFrame(updateCaret));
       input.addEventListener('click', () => requestAnimationFrame(updateCaret));
-      input.addEventListener('focus', () => { requestAnimationFrame(updateCaret); updateStatus(); });
+      input.addEventListener('focus', () => { autoGrow(input); requestAnimationFrame(updateCaret); updateStatus(); });
       input.addEventListener('scroll', () => requestAnimationFrame(updateCaret));
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
+          e.preventDefault();
           if (nodeEl._solidifying) return;
           const raw = input.value;
           if (!isValidWord(raw)) {
@@ -1375,6 +1633,7 @@
         input.classList.remove('edit-pop');
         input.classList.remove('fade-blur-out');
         input.classList.add('show');
+        autoGrow(input);
       }
       return nodeEl;
     }
@@ -1399,6 +1658,7 @@
         if (el) {
           const input = el.querySelector('.root-input');
           if (input && input.classList.contains('show')) {
+            autoGrow(input);
             input.focus();
             hideCaretDelayed();
           }
@@ -1410,7 +1670,7 @@
         });
         if (emptyEl) {
           const input = emptyEl.querySelector('.root-input');
-          if (input) { input.focus(); hideCaretDelayed(); }
+          if (input) { autoGrow(input); input.focus(); hideCaretDelayed(); }
         }
       }
     }
@@ -1444,6 +1704,10 @@
     });
     if (homeBtn) homeBtn.addEventListener('click', () => navigateTo(null));
     if (levelBackBtn) levelBackBtn.addEventListener('click', goBack);
+    const fontBtn = document.getElementById('font-btn');
+    if (fontBtn) fontBtn.addEventListener('click', () => applyFont(fontIdx + 1));
+    const spacingBtn = document.getElementById('spacing-btn');
+    if (spacingBtn) spacingBtn.addEventListener('click', () => applySpacing(spacingIdx + 1));
     if (crumbToggleBtn) crumbToggleBtn.addEventListener('click', () => {
       crumbsVisible = !crumbsVisible;
       updateNav();
@@ -1555,7 +1819,11 @@
       if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
       if (e.altKey || e.metaKey || e.ctrlKey) return;
       const t = e.target;
-      if (t && t.tagName === 'TEXTAREA') return;
+      if (t && t.tagName === 'TEXTAREA') {
+        if (t.classList && t.classList.contains('root-input')) {
+          if (String(t.value || '').trim() !== '') return;
+        } else return;
+      }
       if (t && t.tagName === 'INPUT') {
         if (String(t.value || '').trim() !== '') return;
       }
@@ -1573,7 +1841,12 @@
       stepFocus(e.key === 'ArrowDown' ? 1 : -1);
     });
 
-    window.addEventListener('resize', updateCaret);
+    window.addEventListener('resize', () => {
+      try {
+        nodesEl.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+      } catch (_) {}
+      updateCaret();
+    });
 
     // Add-node button bounce: newborn exploring within 3px radius every ~800ms.
     setInterval(() => {
@@ -1595,7 +1868,7 @@
       });
       if (emptyEl) {
         const input = emptyEl.querySelector('.root-input');
-        if (input) { input.focus(); hideCaretDelayed(); }
+        if (input) { autoGrow(input); input.focus(); hideCaretDelayed(); }
       }
       updateStatus();
     });
@@ -1622,6 +1895,8 @@
         push(document.getElementById('page-up'), 'page-up');
         push(document.getElementById('page-down'), 'page-down');
         push(document.getElementById('add-node-btn'), 'add-btn');
+        push(document.getElementById('font-btn'), 'font-btn');
+        push(document.getElementById('spacing-btn'), 'spacing-btn');
         push(document.getElementById('home-btn'), 'home-btn');
         push(document.getElementById('level-back-btn'), 'back-btn');
         push(document.getElementById('crumb-toggle-btn'), 'crumb-toggle-btn');
