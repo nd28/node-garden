@@ -3,6 +3,10 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.40] - 2026-09-13 - Crumb toggle depth badge
+- `#crumb-toggle-btn` gets tiny `#crumb-count` badge (`absolute -4px` top-right, `12px` circle, mono `9px/12px`, filled black/white text light, inverted dark, `pointer-events:none` on ghost button): shows depth level `= crumbPath().length` (`1,2,...` inside, cleared at root where toggle is hidden), updated in `updateNav`.
+- Kept: mono, per-letter glow, shrink/lift, drill, paging, arrows, validation, prune, crumbs toggle, Alt peek, hot reload, ripple off.
+
 ## [v0.0.39] - 2026-09-13 - Lighten unfocused dim
 - `.root-node` unfocused `opacity:0.5` -> `0.75` (v0.0.38 too dim); `:focus-within`/`:hover`/`:active` still `opacity:1`, `transition: opacity 0.18s ease` unchanged.
 - Kept: mono, per-letter glow, shrink/lift, drill, paging, arrows, validation, prune, Alt peek, hot reload, ripple off.
