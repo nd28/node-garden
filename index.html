@@ -1,4 +1,4 @@
-<!-- button-app v0.0.58 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.61 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -351,8 +351,9 @@
     text-align: center;
     pointer-events: none;
   }
-  /* Font trial switcher (v0.0.41): tiny ghost "Aa" fixed bottom-left footer. */
-  #font-btn {
+  /* Style knobs toggle (v0.0.60): tiny ghost "T" fixed bottom-left footer.
+     Collapses the 5 font/text knobs into #style-knobs row expanding right. */
+  #style-toggle {
     position: fixed;
     bottom: 8px;
     left: 12px;
@@ -373,13 +374,43 @@
     padding: 0;
     transition: background 0.15s ease, transform 0.15s ease;
   }
-  #font-btn:hover { background: #eee; }
-  #font-btn:active { transform: scale(0.94); }
-  /* Spacing cycler (v0.0.45): tiny ghost fixed bottom-left next to font btn. */
-  #spacing-btn {
+  #style-toggle:hover { background: #eee; }
+  #style-toggle:active { transform: scale(0.94); }
+  /* Style knobs row (v0.0.60): fixed bottom-left, expands right of toggle.
+     Hidden unless .open (default collapsed, persisted in 'style-knobs-open'). */
+  #style-knobs {
     position: fixed;
     bottom: 8px;
     left: 42px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+  #style-knobs:not(.open) { display: none; }
+  /* Font trial switcher (v0.0.41, v0.0.60 in knobs row): tiny ghost "Aa". */
+  #font-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: transparent;
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    font-family: var(--page-font);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #font-btn:hover { background: #eee; }
+  #font-btn:active { transform: scale(0.94); }
+  /* Spacing cycler (v0.0.45, v0.0.60 in knobs row): tiny ghost. */
+  #spacing-btn {
     width: 24px;
     height: 24px;
     border-radius: 8px;
@@ -399,11 +430,8 @@
   }
   #spacing-btn:hover { background: #eee; }
   #spacing-btn:active { transform: scale(0.94); }
-  /* Leading cycler (v0.0.47): tiny ghost fixed bottom-left next to spacing btn. */
+  /* Leading cycler (v0.0.47, v0.0.60 in knobs row): tiny ghost. */
   #leading-btn {
-    position: fixed;
-    bottom: 8px;
-    left: 72px;
     width: 24px;
     height: 24px;
     border-radius: 8px;
@@ -423,11 +451,8 @@
   }
   #leading-btn:hover { background: #eee; }
   #leading-btn:active { transform: scale(0.94); }
-  /* Weight cycler (v0.0.53): tiny ghost fixed bottom-left next to leading btn. */
+  /* Weight cycler (v0.0.53, v0.0.60 in knobs row): tiny ghost. */
   #weight-btn {
-    position: fixed;
-    bottom: 8px;
-    left: 102px;
     width: 24px;
     height: 24px;
     border-radius: 8px;
@@ -447,11 +472,8 @@
   }
   #weight-btn:hover { background: #eee; }
   #weight-btn:active { transform: scale(0.94); }
-  /* Size cycler (v0.0.58): tiny ghost fixed bottom-left next to weight btn. */
+  /* Size cycler (v0.0.58, v0.0.60 in knobs row): tiny ghost. */
   #size-btn {
-    position: fixed;
-    bottom: 8px;
-    left: 132px;
     width: 24px;
     height: 24px;
     border-radius: 8px;
@@ -539,6 +561,37 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  /* Node body (v0.0.59, v0.0.61 tight 1.2): about-text for the open parent, below title.
+     Always-editable textarea, page font small, dim placeholder, autogrow. */
+  #node-body {
+    display: block;
+    border: none;
+    outline: none;
+    background: transparent;
+    resize: none;
+    overflow: hidden;
+    font-family: var(--page-font);
+    font-size: 1rem;
+    line-height: 1.2;
+    letter-spacing: var(--node-spacing);
+    font-weight: var(--node-weight);
+    text-align: center;
+    opacity: 0.85;
+    width: min(70vw, 480px);
+    max-width: min(70vw, 480px);
+    min-height: 1.2em;
+    color: #000;
+    caret-color: #000;
+    padding: 0;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  #node-body::placeholder {
+    color: #888;
+    opacity: 0.35;
+  }
+  #node-body:focus { outline: none; }
   /* Open-child affordance: small › pill next to solid text (default/ghost v0.0.33). */
   .open-btn {
     width: 18px;
@@ -626,6 +679,8 @@
     #home-btn, #level-back-btn, #crumb-toggle-btn, #page-up, #page-down { background: transparent; color: #fff; border-color: #fff; }
     #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover, #page-up:hover, #page-down:hover { background: #222; }
     #crumb-count { background: #fff; color: #000; }
+    #style-toggle { background: transparent; color: #fff; border-color: #fff; }
+    #style-toggle:hover { background: #222; }
     #font-btn { background: transparent; color: #fff; border-color: #fff; }
     #font-btn:hover { background: #222; }
     #spacing-btn { background: transparent; color: #fff; border-color: #fff; }
@@ -641,6 +696,8 @@
     .crumb-btn.current { background: #fff; color: #000; }
     #crumbs { background: #000; border-color: #fff; box-shadow: 0 8px 24px rgba(255,255,255,0.15); }
     .open-btn { background: transparent; color: #fff; border-color: #fff; }
+    #node-body { color: #fff; caret-color: #fff; }
+    #node-body::placeholder { color: #666; opacity: 0.35; }
     .open-btn:hover { background: #222; }
     #status { color: #999; }
     #version { color: #888; }
@@ -656,6 +713,7 @@
     <div id="nav-bar">
       <nav id="crumbs" aria-label="Breadcrumb" style="display:none"></nav>
       <div id="level-title" aria-live="polite"></div>
+      <textarea id="node-body" rows="1" wrap="soft" placeholder="Write about..." aria-label="About this node" style="display:none"></textarea>
     </div>
     <div id="nodes" aria-live="polite"></div>
     <button id="add-node-btn" aria-label="Add root node" title="Add root node">+</button>
@@ -669,12 +727,15 @@
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
+  <button id="style-toggle" aria-label="Toggle text style knobs" title="Text style options" aria-expanded="false" aria-controls="style-knobs">T</button>
+  <div id="style-knobs">
   <button id="font-btn" aria-label="Try next node font" title="Try next node font">Aa</button>
   <button id="spacing-btn" aria-label="Cycle node letter-spacing" title="Cycle node letter-spacing">&#8596;</button>
   <button id="leading-btn" aria-label="Cycle node line height" title="Cycle node line height">&#8597;</button>
   <button id="weight-btn" aria-label="Cycle node font weight" title="Cycle node font weight">B</button>
   <button id="size-btn" aria-label="Cycle node font size" title="Cycle node font size">A+</button>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.58</a></div>
+  </div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.61</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -820,6 +881,7 @@
           document.fonts.ready.then(() => requestAnimationFrame(() => {
             try {
               document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+            try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
             } catch (_) {}
             updateCaret();
           })).catch(() => {});
@@ -828,6 +890,7 @@
       requestAnimationFrame(() => {
         try {
           document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+            try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
         } catch (_) {}
         updateCaret();
       });
@@ -862,6 +925,7 @@
       requestAnimationFrame(() => {
         try {
           document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+            try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
         } catch (_) {}
         updateCaret();
       });
@@ -894,6 +958,7 @@
       requestAnimationFrame(() => {
         try {
           document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+            try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
         } catch (_) {}
         updateCaret();
       });
@@ -924,6 +989,7 @@
           document.fonts.ready.then(() => requestAnimationFrame(() => {
             try {
               document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+            try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
             } catch (_) {}
             updateCaret();
           })).catch(() => {});
@@ -932,6 +998,7 @@
       requestAnimationFrame(() => {
         try {
           document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+            try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
         } catch (_) {}
         updateCaret();
       });
@@ -966,6 +1033,7 @@
       requestAnimationFrame(() => {
         try {
           document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+            try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
         } catch (_) {}
         updateCaret();
       });
@@ -1008,8 +1076,8 @@
       return 'n-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
     }
 
-    // Tree Graph store (v0.0.20, v2 JSON): each node
-    // {id, word, parentId (null = root), createdAt, order}.
+    // Tree Graph store (v0.0.20, v2 JSON; v0.0.59 body): each node
+    // {id, word, body, parentId (null = root), createdAt, order}.
     // order: [id] global insertion order; sibling order derives from
     // filtering order by parentId. Edges are parent->child only.
     // Persisted as {version: 2, nodes, edges, order}; v1 flat files
@@ -1027,7 +1095,7 @@
         const pid = (parentId !== undefined && parentId !== null && this.nodes.has(parentId))
           ? parentId : null;
         const id = newNodeId();
-        const node = { id, word: w, parentId: pid, createdAt: Date.now(), order: this.order.length };
+        const node = { id, word: w, body: '', parentId: pid, createdAt: Date.now(), order: this.order.length };
         this.nodes.set(id, node);
         this.adj.set(id, new Set());
         if (pid) this.addEdge(pid, id);
@@ -1038,6 +1106,11 @@
         const n = this.nodes.get(id);
         if (!n) return;
         n.word = word;
+      }
+      updateBody(id, body) {
+        const n = this.nodes.get(id);
+        if (!n) return;
+        n.body = String(body !== undefined && body !== null ? body : '');
       }
       removeNode(id) {
         if (!this.nodes.has(id)) return false;
@@ -1135,6 +1208,7 @@
           g.nodes.set(id, {
             id,
             word: String(n.word || ''),
+            body: typeof n.body === 'string' ? n.body : '',
             parentId: rawPid,
             createdAt: Number(n.createdAt) || Date.now(),
             order: g.order.length,
@@ -1526,6 +1600,38 @@
     const levelBackBtn = document.getElementById('level-back-btn');
     const crumbToggleBtn = document.getElementById('crumb-toggle-btn');
     const crumbCount = document.getElementById('crumb-count');
+    const nodeBody = document.getElementById('node-body');
+    // Node body (v0.0.59): about-text for the open parent. Shown only when
+    // inside (currentParentId != null), below #level-title. Always-editable
+    // textarea, natural case (no title-case), multiline (Enter = newline),
+    // empty allowed (no shake). Saves on input + blur, auto-grows.
+    function syncNodeBody() {
+      if (!nodeBody) return;
+      const par = getParentNode();
+      if (!par) {
+        nodeBody.style.display = 'none';
+        return;
+      }
+      nodeBody.style.display = '';
+      const cur = par.body || '';
+      if (document.activeElement !== nodeBody && nodeBody.value !== cur) nodeBody.value = cur;
+      autoGrow(nodeBody);
+    }
+    if (nodeBody) {
+      nodeBody.addEventListener('input', () => {
+        const par = getParentNode();
+        if (!par) return;
+        par.body = nodeBody.value;
+        saveGraph();
+        autoGrow(nodeBody);
+      });
+      nodeBody.addEventListener('blur', () => {
+        const par = getParentNode();
+        if (!par) return;
+        par.body = nodeBody.value;
+        saveGraph();
+      });
+    }
     // Crumbs hidden by default (v0.0.28): toggle via #crumb-toggle-btn.
     // Floating dropdown menu (v0.0.51): #crumbs is position:fixed near the
     // toggle btn (drop-up), overlays content so open/close never shifts layout.
@@ -1610,6 +1716,7 @@
         levelTitle.textContent = '';
         levelTitle.style.display = 'none';
       }
+      try { syncNodeBody(); } catch (_) {}
       // Breadcrumb: hidden by default, toggle via #crumb-toggle-btn; trail only when inside.
       crumbsEl.innerHTML = '';
       const mkCrumb = (label, targetId, isCurrent, crumbIdx) => {
@@ -2039,6 +2146,27 @@
     if (weightBtn) weightBtn.addEventListener('click', () => applyWeight(weightIdx + 1));
     const sizeBtn = document.getElementById('size-btn');
     if (sizeBtn) sizeBtn.addEventListener('click', () => applySize(sizeIdx + 1));
+    // Style knobs collapse (v0.0.60): #style-toggle expands/collapses the
+    // #style-knobs row (font/spacing/leading/weight/size). Default collapsed,
+    // persisted in 'style-knobs-open' ('1' open, else closed). Simple show/hide.
+    const LS_KNOBS = 'style-knobs-open';
+    const knobsEl = document.getElementById('style-knobs');
+    const styleToggle = document.getElementById('style-toggle');
+    function setKnobsOpen(open, silent) {
+      const v = !!open;
+      try {
+        if (knobsEl) knobsEl.classList.toggle('open', v);
+        if (styleToggle) styleToggle.setAttribute('aria-expanded', v ? 'true' : 'false');
+        if (!silent) { try { localStorage.setItem(LS_KNOBS, v ? '1' : '0'); } catch (_) {} }
+      } catch (_) {}
+    }
+    let knobsOpen = false;
+    try { knobsOpen = localStorage.getItem(LS_KNOBS) === '1'; } catch (_) {}
+    setKnobsOpen(knobsOpen, true);
+    if (styleToggle) styleToggle.addEventListener('click', () => {
+      knobsOpen = !(knobsEl && knobsEl.classList.contains('open'));
+      setKnobsOpen(knobsOpen);
+    });
     if (crumbToggleBtn) crumbToggleBtn.addEventListener('click', (e) => {
       try { e.stopPropagation(); } catch (_) {}
       setCrumbsVisible(!crumbsVisible);
@@ -2210,6 +2338,7 @@
     window.addEventListener('resize', () => {
       try {
         nodesEl.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+        if (typeof nodeBody !== 'undefined' && nodeBody && nodeBody.style.display !== 'none') autoGrow(nodeBody);
       } catch (_) {}
       updateCaret();
     });
@@ -2251,9 +2380,11 @@
         push(document.getElementById('round-btn'), 'write-btn');
         push(document.getElementById('stage'), 'stage');
         push(document.getElementById('level-title'), 'level-title');
+        push(document.getElementById('node-body'), 'node-body');
         push(document.getElementById('page-up'), 'page-up');
         push(document.getElementById('page-down'), 'page-down');
         push(document.getElementById('add-node-btn'), 'add-btn');
+        push(document.getElementById('style-toggle'), 'style-toggle');
         push(document.getElementById('font-btn'), 'font-btn');
         push(document.getElementById('spacing-btn'), 'spacing-btn');
         push(document.getElementById('leading-btn'), 'leading-btn');

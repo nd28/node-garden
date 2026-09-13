@@ -3,6 +3,21 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.61] - 2026-09-13 - Tighter body line height
+- `#node-body` `line-height: var(--node-leading)` -> fixed `1.2` (decoupled from the node leading cycler so body text stays tight); `font-size: 1rem` + `max-width min(70vw,480px)` unchanged, `min-height 1.4em` -> `1.2em` to match; `autoGrow` (scrollHeight) untouched.
+- Kept: knobs collapse, drill, body save, mono/darkmode, Alt peek, hot reload.
+
+## [v0.0.60] - 2026-09-13 - Collapsible style knobs
+- Font/text knobs (`#font-btn Aa`, `#spacing-btn ↔`, `#leading-btn ↕`, `#weight-btn B`, `#size-btn A+`) collapse into `#style-knobs` row behind `#style-toggle` (`T`, 24px ghost, fixed bottom-left at `left:12px`, `aria-expanded` + `aria-controls="style-knobs"`): click expands to show all 5 knobs right of the toggle (`left:42px` flex row, `gap:6px`), click again collapses to single button; simple show/hide via `.open` (`#style-knobs:not(.open)` `display:none`).
+- Default collapsed (clean page), persists open state in `localStorage 'style-knobs-open'` (`'1'` open, else closed, validated on load); knob buttons drop `position:fixed` for in-row static layout, same 24px ghost style light + darkmode (toggle inverts too); Alt peek adds `style-toggle` badge (knob badges auto-hide when collapsed).
+- Kept: lazy fonts/weights, wrap, drill, paging, arrows, validation, body, hot reload, ripple off.
+
+## [v0.0.59] - 2026-09-13 - Node body about-text
+- Each graph node gains `body` string (`''` default, migrated `''` for old nodes in `Graph.fromJSON`); persisted via `root-graph-json` (`toJSON` serializes nodes incl `body`, `updateBody(id, body)` setter).
+- Inside a node (`currentParentId != null`) `#nav-bar` shows `#node-body` textarea below `#level-title`: always-editable, multiline (`Enter` = newline, no solidify), natural case (no title-case), empty allowed (no shake), dim `Write about...` placeholder, page font `1rem` / `opacity 0.85` / `max-width min(70vw,480px)` + shared `--node-leading/--node-spacing/--node-weight`, `autoGrow` on input/nav/resize/font cycles; hidden at root; saves on `input`/`blur` via `saveGraph()`.
+- Alt peek adds `node-body` badge; darkmode inverts text/caret/placeholder.
+- Kept: drill, paging, arrows, validation, fonts/weights/sizes, hot reload, ripple off.
+
 ## [v0.0.58] - 2026-09-13 - Font-size cycler
 - New tiny ghost `#size-btn` (`A+`, 24px rounded 8px, fixed bottom-left at `left:132px` next to `#weight-btn`, page-font label, darkmode invert): cycles node size `1.4rem -> 1.6rem -> 2rem -> 2.6rem -> back`, default `2rem` (idx 2, matches prior hardcoded `2rem`).
 - `.root-input` + `.solid-text` `font-size:2rem` -> `var(--node-size)`; `:root` gains `--node-size:2rem`; `#nodes.show-4` overrides `1.6rem` -> `calc(var(--node-size)*0.8)` so compact scales proportionally.
