@@ -3,6 +3,16 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.58] - 2026-09-13 - Font-size cycler
+- New tiny ghost `#size-btn` (`A+`, 24px rounded 8px, fixed bottom-left at `left:132px` next to `#weight-btn`, page-font label, darkmode invert): cycles node size `1.4rem -> 1.6rem -> 2rem -> 2.6rem -> back`, default `2rem` (idx 2, matches prior hardcoded `2rem`).
+- `.root-input` + `.solid-text` `font-size:2rem` -> `var(--node-size)`; `:root` gains `--node-size:2rem`; `#nodes.show-4` overrides `1.6rem` -> `calc(var(--node-size)*0.8)` so compact scales proportionally.
+- Persists in `localStorage 'node-size-idx'` (validated int, applied on load), click shows `Size <val>` (e.g. `Size 2rem`) in `#status` for ~1.2s then `updateStatus()` restores, `autoGrow` + `updateCaret` re-run (caret height follows computed `fontSize`/`lineHeight`); Alt peek adds `size-btn` badge.
+- Kept: all features.
+
+## [v0.0.57] - 2026-09-13 - Chevron pagers
+- `#page-up`/`#page-down` glyphs `▲ U+25B2` (`&#9650;`) / `▼ U+25BC` (`&#9660;`) -> `˄ U+02C4` (`&#708;`) / `˅ U+02C5` (`&#709;`) to match `‹ U+2039` back chevron style; 24px ghost mono buttons, `aria-label`s, order, and row visibility untouched.
+- Kept: all features.
+
 ## [v0.0.56] - 2026-09-13 - Pagers in level-nav row
 - `#page-up` + `#page-down` moved from `#stage` (top/bottom of `#nodes`) into `#level-nav` between `#level-back-btn` and `#crumb-toggle-btn`: row order now `home, back, page-up, page-down, crumb-toggle`.
 - `.pager-btn` resized `36x28`/`10px radius` -> `24x24`/`8px` ghost (`inline-flex` centered, `padding:0`) to match `home/back/crumb-toggle`; `#level-nav` + hover/active selectors extended to `#page-up/#page-down` (light + darkmode); gap stays `8px`.
