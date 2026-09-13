@@ -1,4 +1,4 @@
-<!-- button-app v0.0.61 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.62 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -555,13 +555,13 @@
     font-size: 13px;
     letter-spacing: 0.04em;
     font-family: var(--page-font);
-    opacity: 0.8;
+    opacity: 1;
     max-width: 92vw;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  /* Node body (v0.0.59, v0.0.61 tight 1.2): about-text for the open parent, below title.
+  /* Node body (v0.0.59, v0.0.61 tight 1.2, v0.0.62 dim 0.6): about-text for the open parent, below title.
      Always-editable textarea, page font small, dim placeholder, autogrow. */
   #node-body {
     display: block;
@@ -576,7 +576,7 @@
     letter-spacing: var(--node-spacing);
     font-weight: var(--node-weight);
     text-align: center;
-    opacity: 0.85;
+    opacity: 0.6;
     width: min(70vw, 480px);
     max-width: min(70vw, 480px);
     min-height: 1.2em;
@@ -696,7 +696,7 @@
     .crumb-btn.current { background: #fff; color: #000; }
     #crumbs { background: #000; border-color: #fff; box-shadow: 0 8px 24px rgba(255,255,255,0.15); }
     .open-btn { background: transparent; color: #fff; border-color: #fff; }
-    #node-body { color: #fff; caret-color: #fff; }
+    #node-body { color: #fff; caret-color: #fff; opacity: 0.6; }
     #node-body::placeholder { color: #666; opacity: 0.35; }
     .open-btn:hover { background: #222; }
     #status { color: #999; }
@@ -735,7 +735,7 @@
   <button id="weight-btn" aria-label="Cycle node font weight" title="Cycle node font weight">B</button>
   <button id="size-btn" aria-label="Cycle node font size" title="Cycle node font size">A+</button>
   </div>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.61</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.62</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');

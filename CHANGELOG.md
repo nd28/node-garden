@@ -3,6 +3,11 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.62] - 2026-09-13 - Dimmer node body, full-bright title
+- `#node-body` `opacity: 0.85` -> `0.6` light + explicit `opacity: 0.6` dark (was inheriting light value); typed body text sits dimmer below the title; `::placeholder` stays dim `0.35` (`#888` light / `#666` dark) untouched.
+- `#level-title` `opacity: 0.8` -> `1` full bright so the parent word stays prominent above the dimmed body.
+- Kept: knobs collapse, drill, body save/autogrow, mono/darkmode, Alt peek, hot reload.
+
 ## [v0.0.61] - 2026-09-13 - Tighter body line height
 - `#node-body` `line-height: var(--node-leading)` -> fixed `1.2` (decoupled from the node leading cycler so body text stays tight); `font-size: 1rem` + `max-width min(70vw,480px)` unchanged, `min-height 1.4em` -> `1.2em` to match; `autoGrow` (scrollHeight) untouched.
 - Kept: knobs collapse, drill, body save, mono/darkmode, Alt peek, hot reload.
