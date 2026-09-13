@@ -3,6 +3,11 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.73] - 2026-09-13 - "?" key toggles tip card
+
+- Global `keydown` `?` (shift+/) toggles `#keys-tip-card` like the `?` button (`setOpen(!open)`): skips Alt/Ctrl/Meta, ignores non-empty `INPUT`/`TEXTAREA` (lets user type `?`); empty waiting input `preventDefault`s (no `?` char) and toggles.
+- Kept: button toggle, outside-click/Esc dismiss, all shortcuts, all features.
+
 ## [v0.0.72] - 2026-09-13 - Keys distinct from meaning in tip card
 
 - `#keys-tip-card` lines split into `<span class="tip-key">` pills (mono bold, `1px` bordered, `4px` radius, `0 4px` padding, subtle bg, full `opacity:1`) + `<span class="tip-def">` meaning (`opacity:0.6`); e.g. `Up / Down — move` -> two key pills + dim def.
