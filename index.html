@@ -1,4 +1,4 @@
-<!-- button-app v0.0.75 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.76 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -672,7 +672,8 @@
   }
   .open-btn:hover { background: #eee; }
   .open-btn:active { transform: scale(0.94); }
-  #status { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); color: #555; font-family: var(--page-font); font-size: 12px; letter-spacing: 0.02em; opacity: 0.6; background: rgba(0,0,0,0.04); padding: 4px 10px; border-radius: 999px; border: none; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+  /* Status (v0.0.76 in-flow below #level-nav): centered pill, margin-top 12px. Was fixed bottom 24px center. */
+  #status { margin-top: 12px; color: #555; font-family: var(--page-font); font-size: 12px; letter-spacing: 0.02em; opacity: 0.6; background: rgba(0,0,0,0.04); padding: 4px 10px; border-radius: 999px; border: none; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
   /* Foot-right cluster (v0.0.75): "?" + credit + version side by side, fixed bottom-right. */
   #foot-right { position: fixed; bottom: 8px; right: 12px; display: flex; flex-direction: row; align-items: center; gap: 8px; }
   #version { font-size: 11px; color: #888; font-family: var(--page-font); }
@@ -858,9 +859,9 @@
       <button id="page-down" class="pager-btn" aria-label="Next page" style="display:none">&#709;</button>
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
+    <p id="status">Waiting for writing...</p>
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
-  <p id="status">Waiting for writing...</p>
   <button id="style-toggle" aria-label="Toggle text style knobs" title="Text style options" aria-expanded="false" aria-controls="style-knobs">T</button>
   <div id="style-knobs">
   <button id="font-btn" aria-label="Try next node font" title="Try next node font">Aa</button>
@@ -872,7 +873,7 @@
   <div id="foot-right">
     <button id="keys-tip-btn" aria-label="Show keyboard shortcuts" title="Keyboard shortcuts" aria-haspopup="true" aria-expanded="false">?</button>
     <div id="credit">made by nd28 with muse spark 1.3</div>
-    <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.75</a></div>
+    <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.76</a></div>
   </div>
   <div id="keys-tip-card" role="dialog" aria-label="Keyboard shortcuts" style="display:none">
     <div><span class="tip-key">Up</span> / <span class="tip-key">Down</span> <span class="tip-def">— move</span></div>

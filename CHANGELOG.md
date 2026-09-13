@@ -3,6 +3,12 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.76] - 2026-09-13 - status in-flow below nav buttons
+
+- `#status` moved in-flow directly below `#level-nav` row (inside `#stage`, after nav): drops fixed `bottom:24px` center (`position/left/transform` removed) for `margin-top:12px`, centered by `#stage` flex; keeps pill style (dim `12px`, `radius:999px`, `4px 10px` padding, ellipsis, `pointer-events:none`).
+- No overlap with fixed `#foot-right` cluster (status now flows with stage, foot stays `bottom:8px right:12px`).
+- Kept: all status messages/flashes, mono/darkmode, all features.
+
 ## [v0.0.75] - 2026-09-13 - credit beside version in foot cluster
 
 - New `#foot-right` cluster (fixed `bottom:8px` `right:12px`, flex row `gap:8px`): `?` button + `#credit` + `#version` side by side, credit left of version, tiny `10px` mono `opacity:0.3` silent; old bottom-left `#credit` fixed removed so nothing overlaps `?`.
