@@ -3,6 +3,11 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.77] - 2026-09-13 - credit mentions opencode
+
+- `#credit` text -> `made by nd28 with opencode + muse spark 1.3` (same `#foot-right` cluster beside `#version`, dimmest silent tiny `10px` mono `opacity:0.3`, no link).
+- Kept: all features, foot cluster position, mono/darkmode.
+
 ## [v0.0.76] - 2026-09-13 - status in-flow below nav buttons
 
 - `#status` moved in-flow directly below `#level-nav` row (inside `#stage`, after nav): drops fixed `bottom:24px` center (`position/left/transform` removed) for `margin-top:12px`, centered by `#stage` flex; keeps pill style (dim `12px`, `radius:999px`, `4px 10px` padding, ellipsis, `pointer-events:none`).
