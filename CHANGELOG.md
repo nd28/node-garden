@@ -3,6 +3,20 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.35] - 2026-09-13 - ArrowLeft back to parent
+- Global `keydown` `ArrowLeft` (same guard as up/down/right: skips Alt/Ctrl/Meta, `TEXTAREA`, non-empty `INPUT` caret): when inside (`currentParentId != null`) calls `goBack()` (up one level, same as bottom `‹` back button); at root does nothing.
+- Kept: mono, primary/ghost hierarchy, drill, paging, arrows up/down/right, validation, prune, crumbs toggle, home/back-bottom, Alt peek, hot reload, ripple off.
+
+## [v0.0.34] - 2026-09-13 - ArrowRight drills inside focused node
+- Global `keydown` `ArrowRight` (same guard as up/down: skips Alt/Ctrl/Meta, `TEXTAREA`, non-empty `INPUT` caret): `openFocusedNode()` resolves focused `.root-node` via `data-node-id` (fallback `data-idx` -> `nodeIdAt`) and calls `navigateTo(id)`, same as clicking `›`.
+- Only solids with a word drill; empty waiting boxes shake via `shakeInput` and stay; focus outside the list does nothing.
+- Kept: mono, primary/ghost hierarchy, drill, paging, arrows up/down, validation, prune, crumbs toggle, home/back-bottom, Alt peek, hot reload, ripple off.
+
+## [v0.0.33] - 2026-09-13 - Button hierarchy: sole primary add, rest ghost
+- `#add-node-btn` is the only primary: filled black/white text light (white/black text dark), bold (`font-weight:800`), keeps 24px + bounce.
+- Default/ghost (transparent, 1px mono border, no fill): `.pager-btn`, `#home-btn`, `#level-back-btn`, `#crumb-toggle-btn`, `.open-btn` — black border/text light, white border/text dark; hover `#eee` light / `#222` dark; same sizes/positions.
+- Kept: focus rings, mono, darkmode, drill, paging, arrows, validation, prune, crumbs toggle, Alt peek, hot reload, ripple off.
+
 ## [v0.0.32] - 2026-09-13 - Remember last level across reloads
 - Persist `currentParentId` in `root-current-parent` (+ `page` in `root-current-page`) via new `savePlace()` on every `navigateTo` (now `navigateTo(parentId, opts)` with `{page, focus, animate}`), pager `page-up/down`, `+` add, arrow-nav page turns (`focusById`), and prune-triggered `clampPage`/`render`; `readSavedPlace()` parses both keys (int-clamped page).
 - `loadNodes()` restores saved parent/page after `loadGraph` migration, then full `pruneEmptiesToOne()`, re-validates (`saved id still exists else roots fallback`), `clampPage()` + `savePlace()`; init no longer resets to `null/0` (removed `currentParentId=null; page=0`), just `loadNodes(); clampPage(); render('first-empty-visible')`.

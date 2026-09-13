@@ -1,4 +1,4 @@
-<!-- button-app v0.0.32 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.35 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -213,22 +213,23 @@
       text-shadow: 0 1px 0 #fff, 0 -1px 1px rgba(0,0,0,0.3);
     }
   }
-  /* Pager buttons: small mono rounded arrows. */
+  /* Pager buttons: small mono rounded arrows (default/ghost hierarchy v0.0.33). */
   .pager-btn {
     width: 36px;
     height: 28px;
     border-radius: 10px;
     border: 1px solid #000;
-    background: #000;
-    color: #fff;
+    background: transparent;
+    color: #000;
     font-size: 14px;
     line-height: 1;
     cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     transition: background 0.15s ease, transform 0.15s ease;
   }
-  .pager-btn:hover { background: #222; }
+  .pager-btn:hover { background: #eee; }
   .pager-btn:active { transform: scale(0.94); }
-  /* Add-node button: ~24px, rounded 8px, "+" text, random bounce via JS. Mono only. */
+  /* Add-node button (v0.0.33: sole primary): filled black, bold, ~24px, rounded 8px, "+" text, random bounce via JS. Mono only. */
   #add-node-btn {
     width: 24px;
     height: 24px;
@@ -237,6 +238,7 @@
     background: #000;
     color: #fff;
     font-size: 14px;
+    font-weight: 800;
     line-height: 1;
     cursor: pointer;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -257,8 +259,8 @@
     height: 24px;
     border-radius: 8px;
     border: 1px solid #000;
-    background: #000;
-    color: #fff;
+    background: transparent;
+    color: #000;
     font-size: 14px;
     line-height: 1;
     cursor: pointer;
@@ -269,7 +271,7 @@
     padding: 0;
     transition: background 0.15s ease, transform 0.15s ease;
   }
-  #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #222; }
+  #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #eee; }
   #home-btn:active, #level-back-btn:active, #crumb-toggle-btn:active { transform: scale(0.94); }
   /* Drill nav: crumbs (mono) + level title (system font, parent word only). */
   #nav-bar {
@@ -322,7 +324,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  /* Open-child affordance: small mono › pill next to solid text. */
+  /* Open-child affordance: small mono › pill next to solid text (default/ghost v0.0.33). */
   .open-btn {
     width: 18px;
     height: 18px;
@@ -334,15 +336,15 @@
     padding: 0 4px;
     border-radius: 6px;
     border: 1px solid #000;
-    background: #000;
-    color: #fff;
+    background: transparent;
+    color: #000;
     font-size: 12px;
     line-height: 1;
     cursor: pointer;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     transition: background 0.15s ease, transform 0.15s ease;
   }
-  .open-btn:hover { background: #222; }
+  .open-btn:hover { background: #eee; }
   .open-btn:active { transform: scale(0.94); }
   #status { position: fixed; bottom: 24px; color: #555; }
   #version { position: fixed; bottom: 8px; right: 12px; font-size: 11px; color: #888; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
@@ -392,17 +394,17 @@
         text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.3);
       }
     }
-    .pager-btn { background: #fff; color: #000; border-color: #fff; }
-    .pager-btn:hover { background: #ddd; }
+    .pager-btn { background: transparent; color: #fff; border-color: #fff; }
+    .pager-btn:hover { background: #222; }
     #add-node-btn { background: #fff; color: #000; border-color: #fff; }
     #add-node-btn:hover { background: #ddd; }
-    #home-btn, #level-back-btn, #crumb-toggle-btn { background: #fff; color: #000; border-color: #fff; }
-    #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #ddd; }
+    #home-btn, #level-back-btn, #crumb-toggle-btn { background: transparent; color: #fff; border-color: #fff; }
+    #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #222; }
     .crumb-btn { border-color: #fff; color: #fff; }
     .crumb-btn:hover { background: #fff; color: #000; }
     .crumb-btn.current { background: #fff; color: #000; }
-    .open-btn { background: #fff; color: #000; border-color: #fff; }
-    .open-btn:hover { background: #ddd; }
+    .open-btn { background: transparent; color: #fff; border-color: #fff; }
+    .open-btn:hover { background: #222; }
     #status { color: #999; }
     #version { color: #888; }
     .id-badge { background: #fff; color: #000; border-color: #fff; }
@@ -430,7 +432,7 @@
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.32</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.35</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -1462,13 +1464,49 @@
       const targetId = list[targetPos] ? list[targetPos].id : null;
       focusById(targetId, targetPos);
     }
+    // Keyboard Left back (v0.0.35): ArrowLeft inside drills up via goBack(),
+    // same as bottom ‹ back button. At root does nothing. Same typing guard
+    // as up/down/right: non-empty inputs keep caret behavior.
+    // Keyboard Right drill (v0.0.34): ArrowRight on a focused node drills
+    // inside via navigateTo(id), same as clicking ›. Only solids with a word
+    // drill; empty waiting boxes do nothing (shake for feedback). Outside the
+    // list does nothing. Same typing guard as up/down: non-empty inputs keep
+    // caret behavior.
+    function openFocusedNode() {
+      const ae = document.activeElement;
+      const nodeEl = ae && ae.closest ? ae.closest('.root-node') : null;
+      if (!nodeEl || !nodesEl.contains(nodeEl)) return;
+      let nid = (nodeEl.dataset && nodeEl.dataset.nodeId) || null;
+      if (!nid || !graph.getNode(nid)) {
+        const gi = Number(nodeEl.dataset ? nodeEl.dataset.idx : NaN);
+        nid = Number.isFinite(gi) ? nodeIdAt(gi) : undefined;
+      }
+      const nd = nid ? graph.getNode(nid) : null;
+      if (!nd) return;
+      if (!((nd.word || '').trim())) {
+        const inp = nodeEl.querySelector('.root-input');
+        if (inp && (inp.classList.contains('show') || inp.classList.contains('edit-pop'))) shakeInput(inp);
+        return;
+      }
+      navigateTo(nid);
+    }
     window.addEventListener('keydown', (e) => {
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
       if (e.altKey || e.metaKey || e.ctrlKey) return;
       const t = e.target;
       if (t && t.tagName === 'TEXTAREA') return;
       if (t && t.tagName === 'INPUT') {
         if (String(t.value || '').trim() !== '') return;
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentParentId != null) goBack();
+        return;
+      }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        openFocusedNode();
+        return;
       }
       e.preventDefault();
       stepFocus(e.key === 'ArrowDown' ? 1 : -1);
