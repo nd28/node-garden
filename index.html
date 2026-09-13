@@ -1,4 +1,4 @@
-<!-- button-app v0.0.67 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.68 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -661,7 +661,7 @@
   }
   .open-btn:hover { background: #eee; }
   .open-btn:active { transform: scale(0.94); }
-  #status { position: fixed; bottom: 24px; color: #555; font-family: var(--page-font); }
+  #status { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); color: #555; font-family: var(--page-font); font-size: 12px; letter-spacing: 0.02em; opacity: 0.6; background: rgba(0,0,0,0.04); padding: 4px 10px; border-radius: 999px; border: none; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
   #version { position: fixed; bottom: 8px; right: 12px; font-size: 11px; color: #888; font-family: var(--page-font); }
   #version a { color: inherit; text-decoration: none; font-family: inherit; }
   #version a:hover { text-decoration: underline; }
@@ -758,7 +758,7 @@
     #node-body { color: #fff; caret-color: #fff; opacity: 0.6; }
     #node-body::placeholder { color: #666; opacity: 0.35; }
     .open-btn:hover { background: #222; }
-    #status { color: #999; }
+    #status { color: #999; background: rgba(255,255,255,0.06); }
     #version { color: #888; }
     .id-badge { background: #fff; color: #000; border-color: #fff; }
     .id-badge:hover { background: #ddd; }
@@ -794,7 +794,7 @@
   <button id="weight-btn" aria-label="Cycle node font weight" title="Cycle node font weight">B</button>
   <button id="size-btn" aria-label="Cycle node font size" title="Cycle node font size">A+</button>
   </div>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.67</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.68</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');

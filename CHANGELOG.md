@@ -3,6 +3,11 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.68] - 2026-09-13 - Polish status hint as centered pill
+
+- `#status` polished from plain fixed-bottom gray to minimal centered pill: `bottom:24px` (kept clear of `#level-nav`/`#add-node-btn` flow + `#version` bottom-right) + `left:50%` + `transform:translateX(-50%)`, page font `12px`, `letter-spacing:0.02em`, `opacity:0.6`, subtle bg `rgba(0,0,0,0.04)` light / `rgba(255,255,255,0.06)` dark, `padding:4px 10px`, `radius:999px`, no border, single-line ellipsis (`white-space:nowrap`, `max-width:92vw`, `pointer-events:none`).
+- Kept: all messages unchanged (`Waiting`, `Editing`, click text, `Font/Spacing/Leading/Weight/Size` flashes), colors `#555` light / `#999` dark.
+
 ## [v0.0.67] - 2026-09-13 - Animate focus corners in (fade + grow, no loop)
 - Focus corners animate in only (no pulse loop, avoids distraction): `opacity 0->1` + size `10px->14px` + slight outward move (base `top/bottom:-4px`, `left/right:-8px` -> focused `top/bottom:-6px`, `left/right:-10px`), `0.2s ease` via `transition: opacity, width, height, top, right, bottom, left`; `prefers-reduced-motion: reduce` disables the transition.
 - Base `.corner` stays rendered at `opacity:0` (`display:block`, was `display:none`/`block` toggle) so the transition can run; `:focus-within` flips to `opacity:1` + `14px` + outward offsets; `pointer-events:none`, `2px` L borders, dim `rgba(0,0,0,0.35)` light / `rgba(255,255,255,0.35)` dark unchanged.
