@@ -3,6 +3,12 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.65] - 2026-09-13 - Fix focus underline gap + 80px height floor
+- `body.focus-underline .root-node:focus-within::after` `margin-top:6px` -> `margin-top:2px` (`width:60%`, `height:4px`, `border-radius:2px` unchanged) so the dim thick outline sits close to text.
+- `.root-node` `min-height:80px` -> `min-height:0` (fit content; `align-items:center`, `justify-content:center`, `flex-direction:column` unchanged) so focused/empty height goes below 80px; `.solid-wrap` `min-height:80px` -> `min-height:40px`; `#nodes.show-4` `60px` floors kept.
+- Kept: experimental flag (`FEATURES.focusUnderline` + `body.focus-underline` gate), per-letter glow, shrink `0.98` + lift, responsive clamped gaps, drill, body, knobs, mono, arrows, validation, Alt peek, hot reload.
+- Rollback: set flag `false` + delete the two `EXPERIMENTAL v0.0.64, v0.0.65 gap fix` CSS blocks (light + dark) + flag/JS gate + v0.0.64/v0.0.65 entries.
+
 ## [v0.0.64] - 2026-09-13 - EXPERIMENTAL focused-node bottom outline (rollback ready)
 - EXPERIMENTAL (awaiting feedback, rollback ready in a single commit): dim thick bottom outline under the focused node via `body.focus-underline .root-node:focus-within::after` (`content:''`, `display:block`, `width:60%`, `height:4px`, `margin-top:6px`, `border-radius:2px`, `background:rgba(0,0,0,0.25)` light / `rgba(255,255,255,0.25)` dark).
 - Gated by `const FEATURES.focusUnderline = true` (easy off: set `false`, optional `localStorage 'feat-focus-underline'` override); JS adds `body.focus-underline` only when on, so `false` removes the underline entirely.

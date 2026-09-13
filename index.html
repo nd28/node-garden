@@ -1,4 +1,4 @@
-<!-- button-app v0.0.64 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.65 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,7 +64,7 @@
     align-items: center;
     justify-content: center;
     min-width: 200px;
-    min-height: 80px;
+    min-height: 0;
     opacity: 0.75;
     transition: opacity 0.18s ease;
   }
@@ -167,7 +167,7 @@
     gap: 8px;
     min-width: 200px;
     max-width: 92vw;
-    min-height: 80px;
+    min-height: 40px;
   }
   #nodes.show-4 .solid-wrap { min-height: 60px; }
   .solid-wrap.show { display: flex; }
@@ -225,7 +225,7 @@
   .solid-text:focus .letter, .solid-text:focus-visible .letter {
     text-shadow: 0 1px 0 #fff, 0 -1px 1px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.25);
   }
-  /* EXPERIMENTAL v0.0.64 rollback ready (single commit): dim thick bottom
+  /* EXPERIMENTAL v0.0.64, v0.0.65 gap fix rollback ready (single commit): dim thick bottom
      outline for focused node. Gated by FEATURES.focusUnderline (body.focus-underline).
      No container box-shadow (keeps per-letter glow); shrink 0.98 + lift untouched.
      Rollback: set flag false + delete this block + dark block below. */
@@ -235,7 +235,7 @@
     display: block;
     width: 60%;
     height: 4px;
-    margin-top: 6px;
+    margin-top: 2px;
     border-radius: 2px;
     background: rgba(0,0,0,0.25);
   }
@@ -672,7 +672,7 @@
     .solid-text:focus .letter, .solid-text:focus-visible .letter {
       text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.3), 0 2px 6px rgba(255,255,255,0.25);
     }
-    /* EXPERIMENTAL v0.0.64 rollback ready (single commit): dark variant of
+    /* EXPERIMENTAL v0.0.64, v0.0.65 gap fix rollback ready (single commit): dark variant of
        focused-node bottom outline. Rollback with light block above. */
     body.focus-underline .root-node:focus-within::after {
       background: rgba(255,255,255,0.25);
@@ -756,7 +756,7 @@
   <button id="weight-btn" aria-label="Cycle node font weight" title="Cycle node font weight">B</button>
   <button id="size-btn" aria-label="Cycle node font size" title="Cycle node font size">A+</button>
   </div>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.64</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.65</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -773,7 +773,7 @@
 
     // Feature flags (v0.0.22): toggle experiments here. Ripple is OFF by default.
     // Override via localStorage: localStorage.setItem('feat-ripple', '1') to force on, '0' to force off.
-    // EXPERIMENTAL v0.0.64 rollback ready (single commit): focusUnderline adds a
+    // EXPERIMENTAL v0.0.64, v0.0.65 gap fix rollback ready (single commit): focusUnderline adds a
     // dim thick bottom outline under the focused node. Set false to disable
     // (easy off, no other changes needed). Awaiting feedback before keeping.
     const FEATURES = { ripple: false, focusUnderline: true };
@@ -785,7 +785,7 @@
       return !!FEATURES.ripple;
     }
     if (!shouldRipple()) console.log('[features] ripple off');
-    // EXPERIMENTAL v0.0.64 rollback ready: gate bottom-outline CSS behind
+    // EXPERIMENTAL v0.0.64, v0.0.65 gap fix rollback ready: gate bottom-outline CSS behind
     // body.focus-underline so FEATURES.focusUnderline=false removes it.
     try {
       let fu = !!FEATURES.focusUnderline;
