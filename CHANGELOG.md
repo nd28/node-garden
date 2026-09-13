@@ -3,6 +3,11 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.25] - 2026-09-13 - Centered node text baseline
+- `.solid-wrap` keeps `align-items:center`; `.solid-text` adds `line-height:1` + `display:inline-flex` + `align-items:center` + `vertical-align:middle` + `margin:0` + `padding:0` so text baseline sits centered vs button.
+- `.letter` spans add `line-height:1` + `vertical-align:middle`; `.open-btn` adds `align-self:center`.
+- Kept: mono + darkmode, drill nav, paging, validation, Alt peek, hot reload, ripple off, 24px add-btn.
+
 ## [v0.0.24] - 2026-09-13 - Smaller centered open button
 - `.open-btn` 28px -> 18px, font 16px -> 12px, radius 8px -> 6px, padding `0 4px`, `display:inline-flex` + `align-items:center` + `justify-content:center` (`line-height:1`) so `›` is vertically centered with `.solid-text`.
 - `.solid-wrap` gap 10px -> 8px, keeps `align-items:center` + `justify-content:center` (wrap + text + button centered vertically).

@@ -1,4 +1,4 @@
-<!-- button-app v0.0.24 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.25 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -163,7 +163,13 @@
   }
   .solid-text {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin: 0;
+    padding: 0;
     font-size: 2rem;
+    line-height: 1;
     text-align: center;
     color: #000;
     letter-spacing: 0.04em;
@@ -187,6 +193,8 @@
   }
   .solid-text .letter {
     display: inline-block;
+    line-height: 1;
+    vertical-align: middle;
     font-weight: 400;
     animation: thicken-press 0.45s ease forwards;
   }
@@ -306,6 +314,7 @@
     width: 18px;
     height: 18px;
     flex: 0 0 auto;
+    align-self: center;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -404,7 +413,7 @@
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.24</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.25</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
