@@ -1,4 +1,4 @@
-<!-- button-app v0.0.27 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.29 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -241,7 +241,7 @@
   }
   #add-node-btn:hover { background: #222; }
   #add-node-btn:active { transform: scale(0.94); }
-  /* Level nav (v0.0.27): Home + Back row below + button, inside only. */
+  /* Level nav (v0.0.28): Home + Back + crumb-toggle row below + button, inside only. */
   #level-nav {
     display: flex;
     flex-direction: row;
@@ -249,7 +249,7 @@
     justify-content: center;
     gap: 8px;
   }
-  #home-btn, #level-back-btn {
+  #home-btn, #level-back-btn, #crumb-toggle-btn {
     width: 24px;
     height: 24px;
     border-radius: 8px;
@@ -266,8 +266,8 @@
     padding: 0;
     transition: background 0.15s ease, transform 0.15s ease;
   }
-  #home-btn:hover, #level-back-btn:hover { background: #222; }
-  #home-btn:active, #level-back-btn:active { transform: scale(0.94); }
+  #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #222; }
+  #home-btn:active, #level-back-btn:active, #crumb-toggle-btn:active { transform: scale(0.94); }
   /* Drill nav: back + crumbs (mono) + level title (system font, parent word only). */
   #nav-bar {
     display: flex;
@@ -410,8 +410,8 @@
     .pager-btn:hover { background: #ddd; }
     #add-node-btn { background: #fff; color: #000; border-color: #fff; }
     #add-node-btn:hover { background: #ddd; }
-    #home-btn, #level-back-btn { background: #fff; color: #000; border-color: #fff; }
-    #home-btn:hover, #level-back-btn:hover { background: #ddd; }
+    #home-btn, #level-back-btn, #crumb-toggle-btn { background: #fff; color: #000; border-color: #fff; }
+    #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #ddd; }
     #back-btn { background: #fff; color: #000; border-color: #fff; }
     #back-btn:hover { background: #ddd; }
     .crumb-btn { border-color: #fff; color: #fff; }
@@ -432,7 +432,7 @@
   <div id="stage">
     <div id="nav-bar">
       <button id="back-btn" aria-label="Back to parent" title="Back to parent" style="display:none">&larr; Back</button>
-      <nav id="crumbs" aria-label="Breadcrumb"></nav>
+      <nav id="crumbs" aria-label="Breadcrumb" style="display:none"></nav>
       <div id="level-title" aria-live="polite"></div>
     </div>
     <button id="page-up" class="pager-btn" aria-label="Previous page" style="display:none">&#9650;</button>
@@ -442,11 +442,12 @@
     <div id="level-nav" style="display:none">
       <button id="home-btn" aria-label="Back to roots" title="Back to roots">&#8962;</button>
       <button id="level-back-btn" aria-label="Back to parent" title="Back to parent">&#8249;</button>
+      <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs">&#8943;</button>
     </div>
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.27</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.29</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -935,6 +936,9 @@
     const levelNav = document.getElementById('level-nav');
     const homeBtn = document.getElementById('home-btn');
     const levelBackBtn = document.getElementById('level-back-btn');
+    const crumbToggleBtn = document.getElementById('crumb-toggle-btn');
+    // Crumbs hidden by default (v0.0.28): toggle via #crumb-toggle-btn.
+    let crumbsVisible = false;
 
     function updateStatus() {
       const pages = computePages(currentSize());
@@ -961,6 +965,7 @@
       if (pid && !graph.getNode(pid)) return;
       currentParentId = pid;
       page = 0;
+      crumbsVisible = false;
       pruneEmptiesToOne();
       ensureLevelHasNode(currentParentId);
       saveGraph();
@@ -994,7 +999,7 @@
         levelTitle.textContent = '';
         levelTitle.style.display = 'none';
       }
-      // Breadcrumb: parent-word trail only when inside, hidden at root.
+      // Breadcrumb: hidden by default, toggle via #crumb-toggle-btn; trail only when inside.
       crumbsEl.innerHTML = '';
       const mkCrumb = (label, targetId, isCurrent, crumbIdx) => {
         const b = document.createElement('button');
@@ -1022,7 +1027,7 @@
         crumbsEl.style.display = 'none';
         if (navBar) navBar.style.display = 'none';
       } else {
-        crumbsEl.style.display = '';
+        crumbsEl.style.display = crumbsVisible ? '' : 'none';
         if (navBar) navBar.style.display = '';
         const chain = crumbPath(); // [...ancestors, current]
         chain.forEach((node, k) => {
@@ -1034,7 +1039,7 @@
       }
       // Contextual add button + placeholder hint.
       const pw2 = parentWord();
-      // Level nav row (v0.0.27): Home + Back below + button, inside only.
+      // Level nav row (v0.0.28): Home + Back + crumb-toggle below + button, inside only.
       if (levelNav) levelNav.style.display = p ? '' : 'none';
       if (p) {
         addBtn.setAttribute('aria-label', 'Add child to ' + (pw2 || 'parent'));
@@ -1340,6 +1345,10 @@
     backBtn.addEventListener('click', goBack);
     if (homeBtn) homeBtn.addEventListener('click', () => navigateTo(null));
     if (levelBackBtn) levelBackBtn.addEventListener('click', goBack);
+    if (crumbToggleBtn) crumbToggleBtn.addEventListener('click', () => {
+      crumbsVisible = !crumbsVisible;
+      updateNav();
+    });
     pageUp.addEventListener('click', () => {
       if (page > 0) { page--; render(); }
     });
@@ -1393,13 +1402,14 @@
         const push = (el, id) => { if (el && isVisibleEl(el)) out.push({ el, id }); };
         push(document.getElementById('round-btn'), 'write-btn');
         push(document.getElementById('stage'), 'stage');
-        push(document.getElementById('back-btn'), 'back-btn');
+        push(document.getElementById('back-btn'), 'back-top');
         push(document.getElementById('level-title'), 'level-title');
         push(document.getElementById('page-up'), 'page-up');
         push(document.getElementById('page-down'), 'page-down');
         push(document.getElementById('add-node-btn'), 'add-btn');
         push(document.getElementById('home-btn'), 'home-btn');
-        push(document.getElementById('level-back-btn'), 'back-btn');
+        push(document.getElementById('level-back-btn'), 'back-bottom');
+        push(document.getElementById('crumb-toggle-btn'), 'crumb-toggle-btn');
         push(document.getElementById('status'), 'status');
         push(document.getElementById('version'), 'version');
         document.querySelectorAll('#crumbs .crumb-btn').forEach((b) => {

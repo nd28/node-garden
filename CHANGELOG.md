@@ -3,6 +3,15 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.29] - 2026-09-13 - Unique back peek IDs
+- Alt peek: top `#back-btn` -> `back-top`, bottom `#level-back-btn` -> `back-bottom` (was duplicate `back-btn` twice); both buttons still work (`goBack`), both stay visible when inside.
+- Kept: mono, drill, crumbs hidden default + toggle, paging, validation, prune, hot reload, ripple off.
+
+## [v0.0.28] - 2026-09-13 - Crumbs hidden behind toggle
+- `#crumbs` hidden by default (`style="display:none"`, `crumbsVisible=false` reset on each `navigateTo`); new `#crumb-toggle-btn` (`⋯` U+22EF, mono 24px rounded 8px like home/back) in `#level-nav` row toggles `crumbsVisible` + `updateNav()`.
+- `updateNav`: inside shows `crumbsEl` only when `crumbsVisible`, root stays hidden; `#nav-bar`/`#level-title`/backs unchanged.
+- Alt peek adds `crumb-toggle-btn` badge; kept mono/darkmode, drill, paging, validation, prune, hot reload, ripple off.
+
 ## [v0.0.27] - 2026-09-13 - Level nav row below add button
 - New `#level-nav` flex row (centered, gap 8px) below `#add-node-btn`, visible only when inside (`currentParentId!=null`, hidden at root via `updateNav`).
 - `#home-btn` (`⌂`, mono 24px rounded) -> `navigateTo(null)` (roots, page 0); `#level-back-btn` (`‹`, mono 24px rounded) -> `goBack()` (parent of current); top `#back-btn` kept, both backs work; prune/ensure, paging reset, focus logic preserved via shared `navigateTo`/`goBack`.
