@@ -1,4 +1,4 @@
-<!-- button-app v0.0.45 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.50 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Round Button</title>
 <style>
-  :root { color-scheme: light dark; --node-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; --node-spacing: 0.04em; }
+  :root { color-scheme: light dark; --node-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; --node-spacing: 0.04em; --node-leading: 1.3; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
   body {
@@ -92,7 +92,7 @@
     white-space: pre-wrap;
     overflow-wrap: break-word;
     word-break: break-word;
-    line-height: 1.3;
+    line-height: var(--node-leading);
     field-sizing: content;
     transition: scale 0.18s ease, translate 0.18s ease, transform 0.18s ease, text-shadow 0.18s ease;
   }
@@ -187,7 +187,7 @@
     padding: 0;
     font-family: var(--node-font);
     font-size: 2rem;
-    line-height: 1.3;
+    line-height: var(--node-leading);
     text-align: center;
     white-space: normal;
     overflow-wrap: break-word;
@@ -385,6 +385,30 @@
   }
   #spacing-btn:hover { background: #eee; }
   #spacing-btn:active { transform: scale(0.94); }
+  /* Leading cycler (v0.0.47): tiny ghost fixed bottom-left next to spacing btn. */
+  #leading-btn {
+    position: fixed;
+    bottom: 8px;
+    left: 72px;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: transparent;
+    color: #000;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #leading-btn:hover { background: #eee; }
+  #leading-btn:active { transform: scale(0.94); }
   /* Drill nav: crumbs (mono) + level title (system font, parent word only). */
   #nav-bar {
     display: flex;
@@ -527,6 +551,8 @@
     #font-btn:hover { background: #222; }
     #spacing-btn { background: transparent; color: #fff; border-color: #fff; }
     #spacing-btn:hover { background: #222; }
+    #leading-btn { background: transparent; color: #fff; border-color: #fff; }
+    #leading-btn:hover { background: #222; }
     .crumb-btn { border-color: #fff; color: #fff; }
     .crumb-btn:hover { background: #fff; color: #000; }
     .crumb-btn.current { background: #fff; color: #000; }
@@ -561,7 +587,8 @@
   <p id="status">Waiting for writing...</p>
   <button id="font-btn" aria-label="Try next node font" title="Try next node font">Aa</button>
   <button id="spacing-btn" aria-label="Cycle node letter-spacing" title="Cycle node letter-spacing">&#8596;</button>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.45</a></div>
+  <button id="leading-btn" aria-label="Cycle node line height" title="Cycle node line height">&#8597;</button>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.50</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -681,8 +708,8 @@
     // .solid-text via shared var(--node-spacing). 4 steps, persists in
     // 'node-spacing-idx', status flashes "Spacing <val>".
     const LS_SPACING = 'node-spacing-idx';
-    const NODE_SPACINGS = ['0em', '0.04em', '0.08em', '0.12em'];
-    let spacingIdx = 1;
+    const NODE_SPACINGS = ['-0.02em', '0em', '0.04em', '0.08em', '0.12em'];
+    let spacingIdx = 2;
     try {
       const rs = localStorage.getItem(LS_SPACING);
       if (rs !== null) {
@@ -708,6 +735,38 @@
       });
     }
     try { document.documentElement.style.setProperty('--node-spacing', NODE_SPACINGS[spacingIdx]); } catch (_) {}
+
+    // Line-height cycler (v0.0.47, v0.0.50 tight): cycles node leading for .root-input +
+    // .solid-text via shared var(--node-leading). 5 steps, persists in
+    // 'node-leading-idx', status flashes "Leading <val>".
+    const LS_LEADING = 'node-leading-idx';
+    const NODE_LEADINGS = ['0.85', '1.0', '1.3', '1.6', '2.0'];
+    let leadingIdx = 2;
+    try {
+      const rl = localStorage.getItem(LS_LEADING);
+      if (rl !== null) {
+        const nl = parseInt(rl, 10);
+        if (Number.isFinite(nl) && nl >= 0 && nl < NODE_LEADINGS.length) leadingIdx = nl;
+      }
+    } catch (_) {}
+    let leadingStatusTimer = null;
+    function applyLeading(i, silent) {
+      leadingIdx = ((i % NODE_LEADINGS.length) + NODE_LEADINGS.length) % NODE_LEADINGS.length;
+      try { document.documentElement.style.setProperty('--node-leading', NODE_LEADINGS[leadingIdx]); } catch (_) {}
+      try { localStorage.setItem(LS_LEADING, String(leadingIdx)); } catch (_) {}
+      if (!silent) {
+        try { status.textContent = 'Leading ' + NODE_LEADINGS[leadingIdx]; } catch (_) {}
+        if (leadingStatusTimer) clearTimeout(leadingStatusTimer);
+        leadingStatusTimer = setTimeout(() => { try { updateStatus(); } catch (_) {} }, 1200);
+      }
+      requestAnimationFrame(() => {
+        try {
+          document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+        } catch (_) {}
+        updateCaret();
+      });
+    }
+    try { document.documentElement.style.setProperty('--node-leading', NODE_LEADINGS[leadingIdx]); } catch (_) {}
 
     function toTitleCase(s) {
       return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
@@ -1302,14 +1361,7 @@
       render(o.focus !== undefined ? o.focus : 'first-empty-visible');
       savePlace();
       requestAnimationFrame(() => {
-        const emptyEl = [...nodesEl.querySelectorAll('.root-node')].find((el) => {
-          const i = Number(el.dataset.idx);
-          return !(getWordAt(i) || '').trim();
-        });
-        if (emptyEl) {
-          const input = emptyEl.querySelector('.root-input');
-          if (input) { autoGrow(input); input.focus(); hideCaretDelayed(); }
-        }
+        if (o.focus === undefined || o.focus === 'first-empty-visible') focusFirstVisible();
         updateStatus();
       });
     }
@@ -1638,6 +1690,44 @@
       return nodeEl;
     }
 
+    // Auto-focus first node (v0.0.48): after load / level open, focus first
+    // visible node — empty waiting input (caret) if present, else first
+    // solid (tabindex, no edit). Skips when Alt peek badges visible.
+    // Only called from the 'first-empty-visible' render path + navigate/load
+    // rAF, never on paging/stepFocus renders.
+    function focusFirstVisible() {
+      try {
+        if (document.querySelector('.id-badge')) return false;
+      } catch (_) {}
+      const nodes = [...nodesEl.querySelectorAll('.root-node')];
+      if (nodes.length === 0) return false;
+      const emptyEl = nodes.find((el) => {
+        const i = Number(el.dataset.idx);
+        return !(getWordAt(i) || '').trim();
+      });
+      if (emptyEl) {
+        const input = emptyEl.querySelector('.root-input');
+        if (input) {
+          try { autoGrow(input); } catch (_) {}
+          try { input.focus(); } catch (_) {}
+          try { hideCaretDelayed(); } catch (_) {}
+          return true;
+        }
+      }
+      const firstEl = nodes[0];
+      const t = (typeof focusableForNodeEl === 'function')
+        ? focusableForNodeEl(firstEl)
+        : firstEl.querySelector('.solid-text');
+      if (t) {
+        try { t.focus({ preventScroll: true }); } catch (_) { try { t.focus(); } catch (_) {} }
+        if (t.classList && t.classList.contains('root-input')) {
+          try { requestAnimationFrame(updateCaret); } catch (_) {}
+        } else { try { updateStatus(); } catch (_) {} }
+        return document.activeElement === t;
+      }
+      return false;
+    }
+
     function render(focusIdx) {
       if (currentParentId && !graph.getNode(currentParentId)) currentParentId = null;
       pruneEmptiesToOne({ preserveCurrent: true });
@@ -1664,14 +1754,7 @@
           }
         }
       } else if (focusIdx === 'first-empty-visible') {
-        const emptyEl = [...nodesEl.querySelectorAll('.root-node')].find((el) => {
-          const i = Number(el.dataset.idx);
-          return !(getWordAt(i) || '').trim();
-        });
-        if (emptyEl) {
-          const input = emptyEl.querySelector('.root-input');
-          if (input) { autoGrow(input); input.focus(); hideCaretDelayed(); }
-        }
+        focusFirstVisible();
       }
     }
 
@@ -1708,6 +1791,8 @@
     if (fontBtn) fontBtn.addEventListener('click', () => applyFont(fontIdx + 1));
     const spacingBtn = document.getElementById('spacing-btn');
     if (spacingBtn) spacingBtn.addEventListener('click', () => applySpacing(spacingIdx + 1));
+    const leadingBtn = document.getElementById('leading-btn');
+    if (leadingBtn) leadingBtn.addEventListener('click', () => applyLeading(leadingIdx + 1));
     if (crumbToggleBtn) crumbToggleBtn.addEventListener('click', () => {
       crumbsVisible = !crumbsVisible;
       updateNav();
@@ -1841,6 +1926,27 @@
       stepFocus(e.key === 'ArrowDown' ? 1 : -1);
     });
 
+    // '+' add shortcut (v0.0.49): '+' or '=' (shift+=) triggers addBtn.click()
+    // (same single-waiting validation, jump to last page, focus new). Guard
+    // like arrows: non-empty INPUT/TEXTAREA keeps typed '+'; empty waiting
+    // input preventDefaults (no '+' char) and reuses button flow (focus+shake
+    // existing empty instead of dup).
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== '+' && e.key !== '=') return;
+      if (e.altKey || e.metaKey || e.ctrlKey) return;
+      const t = e.target;
+      if (t && t.tagName === 'TEXTAREA') {
+        if (t.classList && t.classList.contains('root-input')) {
+          if (String(t.value || '').trim() !== '') return;
+        } else return;
+      }
+      if (t && t.tagName === 'INPUT') {
+        if (String(t.value || '').trim() !== '') return;
+      }
+      e.preventDefault();
+      try { addBtn.click(); } catch (_) {}
+    });
+
     window.addEventListener('resize', () => {
       try {
         nodesEl.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
@@ -1860,16 +1966,9 @@
     loadNodes();
     clampPage();
     render('first-empty-visible');
-    // Autofocus first empty visible input on load (waiting state).
+    // Autofocus first node on load (v0.0.48): waiting input, else first solid.
     requestAnimationFrame(() => {
-      const emptyEl = [...nodesEl.querySelectorAll('.root-node')].find((el) => {
-        const i = Number(el.dataset.idx);
-        return !(getWordAt(i) || '').trim();
-      });
-      if (emptyEl) {
-        const input = emptyEl.querySelector('.root-input');
-        if (input) { autoGrow(input); input.focus(); hideCaretDelayed(); }
-      }
+      focusFirstVisible();
       updateStatus();
     });
   </script>
@@ -1897,6 +1996,7 @@
         push(document.getElementById('add-node-btn'), 'add-btn');
         push(document.getElementById('font-btn'), 'font-btn');
         push(document.getElementById('spacing-btn'), 'spacing-btn');
+        push(document.getElementById('leading-btn'), 'leading-btn');
         push(document.getElementById('home-btn'), 'home-btn');
         push(document.getElementById('level-back-btn'), 'back-btn');
         push(document.getElementById('crumb-toggle-btn'), 'crumb-toggle-btn');

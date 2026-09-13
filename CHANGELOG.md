@@ -3,6 +3,32 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.50] - 2026-09-13 - Tight leading step
+- `NODE_LEADINGS` gains `0.85` tight step: cycle now `0.85 -> 1.0 -> 1.3 -> 1.6 -> 2.0 -> back`, default idx still `1.3` (now idx 2).
+- Caret mirror already copies computed `lineHeight` and `autoGrow` re-runs on cycle, so textarea grow + wrap caret stay aligned at tight leading; acceptable tight, no overlap break.
+- Kept: all features.
+
+## [v0.0.49] - 2026-09-13 - "+" key adds node
+- Global `keydown` `+` / `=` (shift+=) triggers `addBtn.click()` (same single-waiting validation, jump to last page, focus new): skips Alt/Ctrl/Meta, ignores non-empty `INPUT`/`TEXTAREA` (lets user type `+`); empty waiting input `preventDefault`s (no `+` char) and reuses button flow (focus + shake existing empty instead of dup).
+- Kept: all features.
+
+## [v0.0.48] - 2026-09-13 - Auto-focus first node on load/level open
+- New `focusFirstVisible()`: after `render('first-empty-visible')` + load/`navigateTo` rAF, focuses first visible node — empty waiting `.root-input` (caret via `autoGrow` + `hideCaretDelayed`) if present, else first `.solid-text` via `focusableForNodeEl` (tabindex focus only, no edit open).
+- `render` `'first-empty-visible'` branch now calls the helper (solid fallback added); `navigateTo` rAF + init rAF call it then `updateStatus()`; explicit `o.focus` in `navigateTo` skips the rAF refocus so paging/`stepFocus` behavior is untouched.
+- Guard: skips when Alt peek badges (`.id-badge`) are visible.
+- Kept: all features.
+
+## [v0.0.47] - 2026-09-13 - Line-height cycler
+- New tiny ghost `#leading-btn` (`↕`, 24px rounded 8px, fixed bottom-left at `left:72px` next to `#spacing-btn`, mono label, darkmode invert): cycles node line-height `1.0 -> 1.3 -> 1.6 -> 2.0 -> back`, default `1.3` (idx 1, matches wrap).
+- `.solid-text` + `.root-input` `line-height:1.3` -> `var(--node-leading)`; `:root` gains `--node-leading:1.3`; caret mirror already copies `lineHeight` + `autoGrow` re-run so wrap caret stays aligned.
+- Persists in `localStorage 'node-leading-idx'` (validated int, applied on load), click shows `Leading <val>` (e.g. `Leading 1.6`) in `#status` for ~1.2s then `updateStatus()` restores; Alt peek adds `leading-btn` badge.
+- Kept: all features.
+
+## [v0.0.46] - 2026-09-13 - Negative spacing step
+- `NODE_SPACINGS` gains `-0.02em` tight step: cycle now `-0.02em -> 0em -> 0.04em -> 0.08em -> 0.12em -> back`, default idx still `0.04em` (now idx 2).
+- Caret mirror already copies `letterSpacing` and canvas fallback adds `letterSpacing*len`, so negative spacing stays aligned; no layout change.
+- Kept: all features.
+
 ## [v0.0.45] - 2026-09-13 - Letter-spacing cycler
 - New tiny ghost `#spacing-btn` (`↔`, 24px rounded 8px, fixed bottom-left at `left:42px` side by side with `#font-btn`, mono label, darkmode invert): cycles node letter-spacing `0em -> 0.04em -> 0.08em -> 0.12em -> back`.
 - `.solid-text` `letter-spacing:0.04em` -> `var(--node-spacing)`; `.root-input` gains `letter-spacing:var(--node-spacing)`; `:root` gains `--node-spacing:0.04em` default; fake-caret canvas fallback adds `letterSpacing*len`, mirror already copies `letterSpacing` so wrap caret stays aligned.
