@@ -1,4 +1,4 @@
-<!-- button-app v0.0.35 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.36 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,6 +78,8 @@
     text-transform: none;
     transform: scale(0);
     opacity: 0;
+    border-radius: 8px;
+    transition: scale 0.18s ease, translate 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
   }
   #nodes.show-4 .root-input { font-size: 1.6rem; }
   /* Thick fake caret (4px): native caret hidden via JS -> transparent,
@@ -176,12 +178,28 @@
     text-shadow: 0 1px 0 #fff, 0 -1px 1px rgba(0,0,0,0.3);
     cursor: pointer;
     user-select: none;
-    transition: filter 0.25s ease, opacity 0.25s ease, transform 0.18s ease, text-shadow 0.18s ease;
+    transition: filter 0.25s ease, opacity 0.25s ease, transform 0.18s ease, text-shadow 0.18s ease, box-shadow 0.18s ease;
   }
   #nodes.show-4 .solid-text { font-size: 1.6rem; }
-  /* Keyboard nav focus ring (v0.0.30): mono 2px outline, currentColor adapts to darkmode. */
-  .solid-text:focus { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 4px; }
-  .root-input:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+  /* Focused waiting cue (v0.0.36): no ring; tiny shrink + lift + soft glow. */
+  .root-node:focus, .solid-text:focus, .solid-text:focus-visible,
+  .root-input:focus, .root-input:focus-visible {
+    outline: none;
+    border-radius: 8px;
+    transform: scale(0.98) translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    transition: transform 0.18s ease, scale 0.18s ease, translate 0.18s ease, box-shadow 0.18s ease;
+  }
+  /* Individual transform props compose with the grow/edit-pop `transform`
+     animations (which would otherwise override a :focus `transform` while
+     filling); where supported, use them alone to keep exactly 0.98. */
+  @supports (scale: 0.98) {
+    .root-input:focus, .root-input:focus-visible {
+      transform: none;
+      scale: 0.98;
+      translate: 0 -2px;
+    }
+  }
   .solid-text.blur-out {
     filter: blur(8px);
     opacity: 0;
@@ -381,6 +399,10 @@
       color: #fff;
       text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.3);
     }
+    .root-node:focus, .solid-text:focus, .solid-text:focus-visible,
+    .root-input:focus, .root-input:focus-visible {
+      box-shadow: 0 4px 12px rgba(255,255,255,0.12);
+    }
     .solid-text .letter { animation-name: thicken-press-dark; }
     @keyframes thicken-press-dark {
       from {
@@ -432,7 +454,7 @@
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.35</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.36</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');

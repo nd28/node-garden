@@ -3,6 +3,12 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.36] - 2026-09-13 - Subtle focus shrink+glow, no ring
+- Removed keyboard focus rings (`.solid-text:focus` / `.root-input:focus-visible` 2px `currentColor` outline): focused states now `outline:none`, no border.
+- Focused node cue (input + solid): tiny shrink `scale(0.98)`, lift `translateY(-2px)`, soft glow `box-shadow 0 4px 12px rgba(0,0,0,0.12)` light / `rgba(255,255,255,0.12)` dark, `0.18s` transition, 8px radius.
+- Input uses individual `scale`/`translate` props under `@supports` so the cue composes with (not overridden by) the `grow`/`edit-pop` `transform` fill animations; older engines fall back to `transform`.
+- Kept: mono, primary/ghost, drill, paging, arrows incl Right/Left, stepFocus nav, validation, prune, crumbs toggle, Alt peek, hot reload, ripple off.
+
 ## [v0.0.35] - 2026-09-13 - ArrowLeft back to parent
 - Global `keydown` `ArrowLeft` (same guard as up/down/right: skips Alt/Ctrl/Meta, `TEXTAREA`, non-empty `INPUT` caret): when inside (`currentParentId != null`) calls `goBack()` (up one level, same as bottom `‹` back button); at root does nothing.
 - Kept: mono, primary/ghost hierarchy, drill, paging, arrows up/down/right, validation, prune, crumbs toggle, home/back-bottom, Alt peek, hot reload, ripple off.
