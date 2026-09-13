@@ -1,4 +1,4 @@
-<!-- button-app v0.0.37 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.39 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,7 +63,10 @@
     justify-content: center;
     min-width: 200px;
     min-height: 80px;
+    opacity: 0.75;
+    transition: opacity 0.18s ease;
   }
+  .root-node:focus-within, .root-node:hover, .root-node:active { opacity: 1; }
   #nodes.show-4 .root-node { min-height: 60px; }
   .root-input {
     display: none;
@@ -468,7 +471,7 @@
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.37</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.39</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');

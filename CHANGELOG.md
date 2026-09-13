@@ -3,6 +3,14 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.39] - 2026-09-13 - Lighten unfocused dim
+- `.root-node` unfocused `opacity:0.5` -> `0.75` (v0.0.38 too dim); `:focus-within`/`:hover`/`:active` still `opacity:1`, `transition: opacity 0.18s ease` unchanged.
+- Kept: mono, per-letter glow, shrink/lift, drill, paging, arrows, validation, prune, Alt peek, hot reload, ripple off.
+
+## [v0.0.38] - 2026-09-13 - Dim unfocused nodes
+- `.root-node` defaults to `opacity:0.5` with `transition: opacity 0.18s ease`; `:focus-within`/`:hover`/`:active` restores `opacity:1` so only the focused/hovered/active node is full-strength (solid/input inherit via container compositing, inner blur/unblur opacities still multiply).
+- Kept: mono, per-letter glow, shrink/lift, drill, paging, arrows, validation, prune, Alt peek, hot reload, ripple off.
+
 ## [v0.0.37] - 2026-09-13 - Per-letter focus glow, no container box
 - Removed container `box-shadow` on focus (`.solid-text:focus`, `.root-input:focus`, `.root-node:focus` now `box-shadow:none`): no invisible-box look.
 - Focus cue keeps tiny shrink `scale(0.98)` + lift `translateY(-2px)` on the container (`outline:none`, 8px radius kept).
