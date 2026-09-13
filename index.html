@@ -1,4 +1,4 @@
-<!-- button-app v0.0.50 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.56 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Round Button</title>
 <style>
-  :root { color-scheme: light dark; --node-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; --node-spacing: 0.04em; --node-leading: 1.3; }
+  :root { color-scheme: light dark; --page-font: system-ui, -apple-system, sans-serif; --node-font: system-ui, -apple-system, sans-serif; --node-spacing: 0.04em; --node-leading: 1.3; --node-weight: 400; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
   body {
@@ -16,7 +16,7 @@
     min-height: 100vh;
     background: #fff;
     color: #000;
-    font-family: system-ui, sans-serif;
+    font-family: var(--page-font);
     overflow: hidden;
   }
   #round-btn {
@@ -75,6 +75,7 @@
     background: transparent;
     font-family: var(--node-font);
     font-size: 2rem;
+    font-weight: var(--node-weight);
     letter-spacing: var(--node-spacing);
     text-align: center;
     min-width: 200px;
@@ -96,9 +97,16 @@
     field-sizing: content;
     transition: scale 0.18s ease, translate 0.18s ease, transform 0.18s ease, text-shadow 0.18s ease;
   }
+  /* Dim placeholder (v0.0.52): mono gray at ~0.35 so typed text stands out.
+     Title-case placeholder text kept; normal style in both modes. */
+  .root-input::placeholder {
+    color: #888;
+    opacity: 0.35;
+    font-style: normal;
+  }
   #nodes.show-4 .root-input { font-size: 1.6rem; }
   /* Thick fake caret (4px): native caret hidden via JS -> transparent,
-     this block bar follows the true caret position. Mono only. Shared one. */
+     this block bar follows the true caret position. Shared one. */
   #fake-caret {
     position: fixed;
     display: none;
@@ -187,6 +195,7 @@
     padding: 0;
     font-family: var(--node-font);
     font-size: 2rem;
+    font-weight: var(--node-weight);
     line-height: var(--node-leading);
     text-align: center;
     white-space: normal;
@@ -243,13 +252,13 @@
     display: inline-block;
     line-height: inherit;
     vertical-align: baseline;
-    font-weight: 400;
+    font-weight: var(--node-weight);
     transition: text-shadow 0.18s ease;
     animation: thicken-press 0.45s ease forwards;
   }
   @keyframes thicken-press {
     from {
-      font-weight: 400;
+      font-weight: var(--node-weight);
       transform: scale(1.18);
       text-shadow: 0 2px 2px rgba(0,0,0,0.2), 0 0 0 #fff;
     }
@@ -259,23 +268,27 @@
       text-shadow: 0 1px 0 #fff, 0 -1px 1px rgba(0,0,0,0.3);
     }
   }
-  /* Pager buttons: small mono rounded arrows (default/ghost hierarchy v0.0.33). */
+  /* Pager buttons (v0.0.56 in level-nav row): same 24px ghost as home/back/crumb-toggle. */
   .pager-btn {
-    width: 36px;
-    height: 28px;
-    border-radius: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
     border: 1px solid #000;
     background: transparent;
     color: #000;
     font-size: 14px;
     line-height: 1;
     cursor: pointer;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--page-font);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
     transition: background 0.15s ease, transform 0.15s ease;
   }
   .pager-btn:hover { background: #eee; }
   .pager-btn:active { transform: scale(0.94); }
-  /* Add-node button (v0.0.33: sole primary): filled black, bold, ~24px, rounded 8px, "+" text, random bounce via JS. Mono only. */
+  /* Add-node button (v0.0.33: sole primary): filled black, bold, ~24px, rounded 8px, "+" text, random bounce via JS. Page font. */
   #add-node-btn {
     width: 24px;
     height: 24px;
@@ -287,12 +300,13 @@
     font-weight: 800;
     line-height: 1;
     cursor: pointer;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--page-font);
     transition: transform 0.7s ease, background 0.15s ease;
   }
   #add-node-btn:hover { background: #222; }
   #add-node-btn:active { transform: scale(0.94); }
-  /* Level nav (v0.0.28): Home + Back + crumb-toggle row below + button, inside only. */
+  /* Level nav (v0.0.28, v0.0.56 pagers in row): Home + Back + page-up/down + crumb-toggle.
+     Visible when inside OR paging (root pagers still reachable). */
   #level-nav {
     display: flex;
     flex-direction: row;
@@ -300,7 +314,7 @@
     justify-content: center;
     gap: 8px;
   }
-  #home-btn, #level-back-btn, #crumb-toggle-btn {
+  #home-btn, #level-back-btn, #crumb-toggle-btn, #page-up, #page-down {
     width: 24px;
     height: 24px;
     border-radius: 8px;
@@ -310,15 +324,15 @@
     font-size: 14px;
     line-height: 1;
     cursor: pointer;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--page-font);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
     transition: background 0.15s ease, transform 0.15s ease;
   }
-  #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #eee; }
-  #home-btn:active, #level-back-btn:active, #crumb-toggle-btn:active { transform: scale(0.94); }
+  #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover, #page-up:hover, #page-down:hover { background: #eee; }
+  #home-btn:active, #level-back-btn:active, #crumb-toggle-btn:active, #page-up:active, #page-down:active { transform: scale(0.94); }
   /* Crumb-toggle depth badge (v0.0.40): tiny filled count on ghost ⋯ button. */
   #crumb-toggle-btn { position: relative; }
   #crumb-count {
@@ -331,7 +345,7 @@
     border-radius: 999px;
     background: #000;
     color: #fff;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--page-font);
     font-size: 9px;
     line-height: 12px;
     text-align: center;
@@ -352,7 +366,7 @@
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--page-font);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -376,7 +390,7 @@
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--page-font);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -400,7 +414,7 @@
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--page-font);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -409,7 +423,31 @@
   }
   #leading-btn:hover { background: #eee; }
   #leading-btn:active { transform: scale(0.94); }
-  /* Drill nav: crumbs (mono) + level title (system font, parent word only). */
+  /* Weight cycler (v0.0.53): tiny ghost fixed bottom-left next to leading btn. */
+  #weight-btn {
+    position: fixed;
+    bottom: 8px;
+    left: 102px;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: transparent;
+    color: #000;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    font-family: var(--page-font);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #weight-btn:hover { background: #eee; }
+  #weight-btn:active { transform: scale(0.94); }
+  /* Drill nav: crumbs (page font) + level title (page font, parent word only). */
   #nav-bar {
     display: flex;
     flex-direction: column;
@@ -418,15 +456,32 @@
     gap: 6px;
     max-width: 92vw;
   }
+  /* Crumbs floating dropdown menu (v0.0.51): fixed near #crumb-toggle-btn,
+     overlays content (no layout shift), page-font pill container with shadow. */
   #crumbs {
+    position: fixed;
+    z-index: 5000;
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 6px;
-    max-width: 92vw;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 4px;
+    min-width: 140px;
+    max-width: min(70vw, 320px);
+    max-height: 40vh;
+    overflow-y: auto;
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid #000;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   }
+  #crumbs .crumb-btn {
+    max-width: none;
+    width: 100%;
+    text-align: left;
+  }
+  #crumbs .crumb-sep { display: none; }
   .crumb-btn {
     padding: 2px 8px;
     border-radius: 8px;
@@ -436,7 +491,7 @@
     font-size: 12px;
     line-height: 1.4;
     cursor: pointer;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--page-font);
     max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -453,14 +508,14 @@
   #level-title {
     font-size: 13px;
     letter-spacing: 0.04em;
-    font-family: system-ui, sans-serif;
+    font-family: var(--page-font);
     opacity: 0.8;
     max-width: 92vw;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  /* Open-child affordance: small mono › pill next to solid text (default/ghost v0.0.33). */
+  /* Open-child affordance: small › pill next to solid text (default/ghost v0.0.33). */
   .open-btn {
     width: 18px;
     height: 18px;
@@ -477,20 +532,20 @@
     font-size: 12px;
     line-height: 1;
     cursor: pointer;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--page-font);
     transition: background 0.15s ease, transform 0.15s ease;
   }
   .open-btn:hover { background: #eee; }
   .open-btn:active { transform: scale(0.94); }
-  #status { position: fixed; bottom: 24px; color: #555; }
-  #version { position: fixed; bottom: 8px; right: 12px; font-size: 11px; color: #888; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  #status { position: fixed; bottom: 24px; color: #555; font-family: var(--page-font); }
+  #version { position: fixed; bottom: 8px; right: 12px; font-size: 11px; color: #888; font-family: var(--page-font); }
   #version a { color: inherit; text-decoration: none; font-family: inherit; }
   #version a:hover { text-decoration: underline; }
-  /* Alt-key ID peek badges: mono pills, fixed near target. */
+  /* Alt-key ID peek badges: page-font pills, fixed near target. */
   .id-badge {
     position: fixed;
     z-index: 9999;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--page-font);
     font-size: 11px;
     line-height: 1;
     padding: 3px 7px;
@@ -510,7 +565,7 @@
     #round-btn { background: #fff; color: #000; box-shadow: 0 4px 14px rgba(255,255,255,0.2); }
     #round-btn:hover { background: #ddd; }
     .root-input { color: #fff; caret-color: #fff; }
-    .root-input::placeholder { color: #888; }
+    .root-input::placeholder { color: #666; opacity: 0.35; font-style: normal; }
     #fake-caret { background: #fff; }
     .ripple { background: rgba(255,255,255,0.18); }
     .solid-text {
@@ -530,7 +585,7 @@
     .solid-text .letter { animation-name: thicken-press-dark; }
     @keyframes thicken-press-dark {
       from {
-        font-weight: 400;
+        font-weight: var(--node-weight);
         transform: scale(1.18);
         text-shadow: 0 2px 2px rgba(255,255,255,0.2), 0 0 0 #000;
       }
@@ -544,8 +599,8 @@
     .pager-btn:hover { background: #222; }
     #add-node-btn { background: #fff; color: #000; border-color: #fff; }
     #add-node-btn:hover { background: #ddd; }
-    #home-btn, #level-back-btn, #crumb-toggle-btn { background: transparent; color: #fff; border-color: #fff; }
-    #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover { background: #222; }
+    #home-btn, #level-back-btn, #crumb-toggle-btn, #page-up, #page-down { background: transparent; color: #fff; border-color: #fff; }
+    #home-btn:hover, #level-back-btn:hover, #crumb-toggle-btn:hover, #page-up:hover, #page-down:hover { background: #222; }
     #crumb-count { background: #fff; color: #000; }
     #font-btn { background: transparent; color: #fff; border-color: #fff; }
     #font-btn:hover { background: #222; }
@@ -553,9 +608,12 @@
     #spacing-btn:hover { background: #222; }
     #leading-btn { background: transparent; color: #fff; border-color: #fff; }
     #leading-btn:hover { background: #222; }
+    #weight-btn { background: transparent; color: #fff; border-color: #fff; }
+    #weight-btn:hover { background: #222; }
     .crumb-btn { border-color: #fff; color: #fff; }
     .crumb-btn:hover { background: #fff; color: #000; }
     .crumb-btn.current { background: #fff; color: #000; }
+    #crumbs { background: #000; border-color: #fff; box-shadow: 0 8px 24px rgba(255,255,255,0.15); }
     .open-btn { background: transparent; color: #fff; border-color: #fff; }
     .open-btn:hover { background: #222; }
     #status { color: #999; }
@@ -573,14 +631,14 @@
       <nav id="crumbs" aria-label="Breadcrumb" style="display:none"></nav>
       <div id="level-title" aria-live="polite"></div>
     </div>
-    <button id="page-up" class="pager-btn" aria-label="Previous page" style="display:none">&#9650;</button>
     <div id="nodes" aria-live="polite"></div>
-    <button id="page-down" class="pager-btn" aria-label="Next page" style="display:none">&#9660;</button>
     <button id="add-node-btn" aria-label="Add root node" title="Add root node">+</button>
     <div id="level-nav" style="display:none">
       <button id="home-btn" aria-label="Back to roots" title="Back to roots">&#8962;</button>
       <button id="level-back-btn" aria-label="Back to parent" title="Back to parent">&#8249;</button>
-      <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
+      <button id="page-up" class="pager-btn" aria-label="Previous page" style="display:none">&#9650;</button>
+      <button id="page-down" class="pager-btn" aria-label="Next page" style="display:none">&#9660;</button>
+      <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
@@ -588,7 +646,8 @@
   <button id="font-btn" aria-label="Try next node font" title="Try next node font">Aa</button>
   <button id="spacing-btn" aria-label="Cycle node letter-spacing" title="Cycle node letter-spacing">&#8596;</button>
   <button id="leading-btn" aria-label="Cycle node line height" title="Cycle node line height">&#8597;</button>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.50</a></div>
+  <button id="weight-btn" aria-label="Cycle node font weight" title="Cycle node font weight">B</button>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.56</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -615,23 +674,62 @@
     }
     if (!shouldRipple()) console.log('[features] ripple off');
 
-    // Font trial switcher (v0.0.42 lazy): cycles node font stack for .root-input +
-    // .solid-text (shared var(--node-font) so the fake caret stays aligned via
-    // getComputedStyle measurement). No font CSS in <head>: initial paint is
-    // system mono. First cycle to a webfont injects its Google Fonts sheet only
-    // (display=swap) + on-demand preconnect; stack fallback covers offline.
-    // Persists in 'node-font-idx'.
+    // Font-weight state (v0.0.55: defined before fonts so weight-lazy
+    // ensureWebfont can load only the active weight). 4 steps, persists in
+    // 'node-weight-idx', default 400 (idx 1).
+    const LS_WEIGHT = 'node-weight-idx';
+    const NODE_WEIGHTS = ['300', '400', '600', '800'];
+    let weightIdx = 1;
+    try {
+      const rw0 = localStorage.getItem(LS_WEIGHT);
+      if (rw0 !== null) {
+        const nw0 = parseInt(rw0, 10);
+        if (Number.isFinite(nw0) && nw0 >= 0 && nw0 < NODE_WEIGHTS.length) weightIdx = nw0;
+      }
+    } catch (_) {}
+
+    // Font trial switcher (v0.0.55 page-wide, weight-lazy): cycles page font
+    // stack for body + .root-input + .solid-text + buttons/status/crumbs
+    // (shared var(--page-font) page-wide + var(--node-font) kept in sync so
+    // the fake caret stays aligned via getComputedStyle measurement). No font
+    // CSS in <head>: initial paint is System UI, zero webfonts fetched
+    // upfront. First cycle to a webfont injects only the active weight's
+    // sheet (css2 single wght, display=swap) + on-demand preconnect; cycling
+    // weight (300/400/600/800) loads that weight on demand per family
+    // (cache per family+weight); stack fallback covers offline/missing.
+    // Persists in 'node-font-idx'. Order: System UI default first.
     const LS_FONT = 'node-font-idx';
     const NODE_FONTS = [
-      { name: 'System Mono', stack: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', css: null },
-      { name: 'JetBrains Mono', stack: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', css: 'JetBrains+Mono:wght@400;800' },
-      { name: 'IBM Plex Mono', stack: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', css: 'IBM+Plex+Mono:wght@400;700' },
-      { name: 'Space Mono', stack: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', css: 'Space+Mono:wght@400;700' },
-      { name: 'System UI', stack: 'system-ui, -apple-system, "Segoe UI", sans-serif', css: null },
-      { name: 'Georgia', stack: 'Georgia, "Times New Roman", serif', css: null },
-      { name: 'Lexend', stack: '"Lexend", system-ui, sans-serif', css: 'Lexend:wght@400;700' },
-      { name: 'Inter Tight', stack: '"Inter Tight", system-ui, sans-serif', css: 'Inter+Tight:wght@400;700' },
+      { name: 'System UI', stack: 'system-ui, -apple-system, sans-serif', fam: null },
+      { name: 'System Mono', stack: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fam: null },
+      { name: 'JetBrains Mono', stack: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fam: 'JetBrains+Mono', weights: [300, 400, 600, 800] },
+      { name: 'IBM Plex Mono', stack: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fam: 'IBM+Plex+Mono', weights: [300, 400, 600, 700] },
+      { name: 'Space Mono', stack: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fam: 'Space+Mono', weights: [400, 700] },
+      { name: 'Lexend', stack: '"Lexend", system-ui, sans-serif', fam: 'Lexend', weights: [300, 400, 600, 800] },
+      { name: 'Inter Tight', stack: '"Inter Tight", system-ui, sans-serif', fam: 'Inter+Tight', weights: [300, 400, 600, 800] },
+      { name: 'Georgia', stack: 'Georgia, "Times New Roman", serif', fam: null },
     ];
+    // Map a wanted weight (e.g. '600') to the nearest weight the family
+    // actually ships, so single-weight css2 requests never 400 (Space Mono
+    // has only 400/700; Plex 800 -> 700). Exact match wins, else nearest.
+    function fontWeightFor(font, want) {
+      if (!font || !font.fam || !Array.isArray(font.weights) || !font.weights.length) return null;
+      const w = parseInt(want, 10);
+      if (!Number.isFinite(w)) return font.weights.indexOf(400) !== -1 ? 400 : font.weights[0];
+      if (font.weights.indexOf(w) !== -1) return w;
+      let best = font.weights[0];
+      let bestD = Math.abs(font.weights[0] - w);
+      for (let k = 1; k < font.weights.length; k++) {
+        const d = Math.abs(font.weights[k] - w);
+        if (d < bestD) { bestD = d; best = font.weights[k]; }
+      }
+      return best;
+    }
+    function fontCssFor(font, want) {
+      const m = fontWeightFor(font, want);
+      if (!font || !font.fam || m === null) return null;
+      return font.fam + ':wght@' + m;
+    }
     const loadedFontCss = {};
     function ensurePreconnect() {
       try {
@@ -650,19 +748,24 @@
         }
       } catch (_) {}
     }
-    function ensureWebfont(i) {
+    function ensureWebfont(i, wantWeight) {
       const f = NODE_FONTS[i];
-      if (!f || !f.css || loadedFontCss[f.css]) return;
+      if (!f || !f.fam) return;
+      const want = (wantWeight !== undefined && wantWeight !== null)
+        ? wantWeight
+        : (typeof NODE_WEIGHTS !== 'undefined' && typeof weightIdx !== 'undefined' ? NODE_WEIGHTS[weightIdx] : '400');
+      const css = fontCssFor(f, want);
+      if (!css || loadedFontCss[css]) return;
       try {
         ensurePreconnect();
         const l = document.createElement('link');
         l.rel = 'stylesheet';
-        l.href = 'https://fonts.googleapis.com/css2?family=' + f.css + '&display=swap';
-        l.setAttribute('data-lazy-font', f.name);
-        // Offline: stack already falls back to system mono; allow retry.
-        l.onerror = () => { try { delete loadedFontCss[f.css]; } catch (_) {} };
+        l.href = 'https://fonts.googleapis.com/css2?family=' + css + '&display=swap';
+        l.setAttribute('data-lazy-font', f.name + ':' + fontWeightFor(f, want));
+        // Offline: stack already falls back to system; allow retry.
+        l.onerror = () => { try { delete loadedFontCss[css]; } catch (_) {} };
         document.head.appendChild(l);
-        loadedFontCss[f.css] = l;
+        loadedFontCss[css] = l;
       } catch (_) {}
     }
     let fontIdx = 0;
@@ -676,7 +779,8 @@
     let fontStatusTimer = null;
     function applyFont(i, silent) {
       fontIdx = ((i % NODE_FONTS.length) + NODE_FONTS.length) % NODE_FONTS.length;
-      ensureWebfont(fontIdx);
+      ensureWebfont(fontIdx, NODE_WEIGHTS[weightIdx]);
+      try { document.documentElement.style.setProperty('--page-font', NODE_FONTS[fontIdx].stack); } catch (_) {}
       try { document.documentElement.style.setProperty('--node-font', NODE_FONTS[fontIdx].stack); } catch (_) {}
       try { localStorage.setItem(LS_FONT, String(fontIdx)); } catch (_) {}
       if (!silent) {
@@ -702,6 +806,7 @@
       });
     }
     ensureWebfont(fontIdx);
+    try { document.documentElement.style.setProperty('--page-font', NODE_FONTS[fontIdx].stack); } catch (_) {}
     try { document.documentElement.style.setProperty('--node-font', NODE_FONTS[fontIdx].stack); } catch (_) {}
 
     // Letter-spacing cycler (v0.0.45): cycles node spacing for .root-input +
@@ -767,6 +872,44 @@
       });
     }
     try { document.documentElement.style.setProperty('--node-leading', NODE_LEADINGS[leadingIdx]); } catch (_) {}
+
+    // Font-weight cycler (v0.0.53, v0.0.55 weight-lazy): cycles base node
+    // weight thin->bold for .root-input + .solid-text via shared
+    // var(--node-weight). 4 steps, persists in 'node-weight-idx' (state
+    // defined above fonts), status flashes "Weight <val>". Each step loads
+    // only that weight's sheet for the active family on demand
+    // (ensureWebfont family+weight cache, nearest-match map); system stacks
+    // skip load. Press animation still thickens to 800 max (keyframes from
+    // var -> 800); steady-state reload solids keep 800 like the animated end.
+    let weightStatusTimer = null;
+    function applyWeight(i, silent) {
+      weightIdx = ((i % NODE_WEIGHTS.length) + NODE_WEIGHTS.length) % NODE_WEIGHTS.length;
+      ensureWebfont(fontIdx, NODE_WEIGHTS[weightIdx]);
+      try { document.documentElement.style.setProperty('--node-weight', NODE_WEIGHTS[weightIdx]); } catch (_) {}
+      try { localStorage.setItem(LS_WEIGHT, String(weightIdx)); } catch (_) {}
+      if (!silent) {
+        try { status.textContent = 'Weight ' + NODE_WEIGHTS[weightIdx]; } catch (_) {}
+        if (weightStatusTimer) clearTimeout(weightStatusTimer);
+        weightStatusTimer = setTimeout(() => { try { updateStatus(); } catch (_) {} }, 1200);
+      }
+      try {
+        if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+          document.fonts.ready.then(() => requestAnimationFrame(() => {
+            try {
+              document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+            } catch (_) {}
+            updateCaret();
+          })).catch(() => {});
+        }
+      } catch (_) {}
+      requestAnimationFrame(() => {
+        try {
+          document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
+        } catch (_) {}
+        updateCaret();
+      });
+    }
+    try { document.documentElement.style.setProperty('--node-weight', NODE_WEIGHTS[weightIdx]); } catch (_) {}
 
     function toTitleCase(s) {
       return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
@@ -1323,7 +1466,31 @@
     const crumbToggleBtn = document.getElementById('crumb-toggle-btn');
     const crumbCount = document.getElementById('crumb-count');
     // Crumbs hidden by default (v0.0.28): toggle via #crumb-toggle-btn.
+    // Floating dropdown menu (v0.0.51): #crumbs is position:fixed near the
+    // toggle btn (drop-up), overlays content so open/close never shifts layout.
     let crumbsVisible = false;
+    function positionCrumbMenu() {
+      try {
+        if (!crumbsVisible || !crumbsEl || !crumbToggleBtn) return;
+        if (crumbsEl.style.display === 'none') return;
+        const r = crumbToggleBtn.getBoundingClientRect();
+        const mw = crumbsEl.offsetWidth || 180;
+        const mh = crumbsEl.offsetHeight || 0;
+        let left = Math.round(r.left + r.width / 2 - mw / 2);
+        left = Math.max(8, Math.min(left, window.innerWidth - mw - 8));
+        crumbsEl.style.left = left + 'px';
+        let top = Math.round(r.top - mh - 8);
+        if (top < 8) top = Math.round(r.bottom + 8);
+        if (top + mh > window.innerHeight - 8) top = Math.max(8, window.innerHeight - mh - 8);
+        crumbsEl.style.top = top + 'px';
+      } catch (_) {}
+    }
+    function setCrumbsVisible(v) {
+      crumbsVisible = !!v;
+      try { crumbToggleBtn.setAttribute('aria-expanded', crumbsVisible ? 'true' : 'false'); } catch (_) {}
+      updateNav();
+      if (crumbsVisible) requestAnimationFrame(positionCrumbMenu);
+    }
 
     function updateStatus() {
       const pages = computePages(currentSize());
@@ -1372,6 +1539,7 @@
 
     function updateNav() {
       const p = getParentNode();
+      try { crumbToggleBtn.setAttribute('aria-expanded', crumbsVisible ? 'true' : 'false'); } catch (_) {}
       // Header (parent word only, no count, no Root).
       if (p) {
         const pw = (p.word || '').trim() || '(empty)';
@@ -1423,14 +1591,28 @@
       }
       // Contextual add button + placeholder hint.
       const pw2 = parentWord();
-      // Level nav row (v0.0.28): Home + Back + crumb-toggle below + button, inside only.
-      if (levelNav) levelNav.style.display = p ? '' : 'none';
+      // Level nav row (v0.0.56): pagers live in-row between back + crumb-toggle.
+      // Row visible when inside OR paging (root pagers still reachable);
+      // home/back/crumb-toggle only when inside, pagers only when paging.
+      const navPages = computePages(currentSize());
+      const needUp = page > 0;
+      const needDown = page < navPages.length - 1;
+      const needPaging = needUp || needDown;
+      if (levelNav) levelNav.style.display = (p || needPaging) ? '' : 'none';
+      if (homeBtn) homeBtn.style.display = p ? '' : 'none';
+      if (levelBackBtn) levelBackBtn.style.display = p ? '' : 'none';
+      if (crumbToggleBtn) crumbToggleBtn.style.display = p ? '' : 'none';
+      if (pageUp) pageUp.style.display = needUp ? '' : 'none';
+      if (pageDown) pageDown.style.display = needDown ? '' : 'none';
       if (p) {
         addBtn.setAttribute('aria-label', 'Add child to ' + (pw2 || 'parent'));
         addBtn.title = 'Add to ' + (pw2 || 'parent');
       } else {
         addBtn.setAttribute('aria-label', 'Add root node');
         addBtn.title = 'Add root node';
+      }
+      if (p && crumbsVisible && crumbsEl.style.display !== 'none') {
+        requestAnimationFrame(positionCrumbMenu);
       }
     }
 
@@ -1739,8 +1921,7 @@
       vis.forEach((idx) => {
         nodesEl.appendChild(createNodeEl(idx));
       });
-      pageUp.style.display = page > 0 ? '' : 'none';
-      pageDown.style.display = page < pages.length - 1 ? '' : 'none';
+      // Pagers + row visibility owned by updateNav (v0.0.56 in-row pagers).
       updateNav();
       updateStatus();
       if (focusIdx !== undefined && vis.includes(focusIdx)) {
@@ -1793,10 +1974,26 @@
     if (spacingBtn) spacingBtn.addEventListener('click', () => applySpacing(spacingIdx + 1));
     const leadingBtn = document.getElementById('leading-btn');
     if (leadingBtn) leadingBtn.addEventListener('click', () => applyLeading(leadingIdx + 1));
-    if (crumbToggleBtn) crumbToggleBtn.addEventListener('click', () => {
-      crumbsVisible = !crumbsVisible;
-      updateNav();
+    const weightBtn = document.getElementById('weight-btn');
+    if (weightBtn) weightBtn.addEventListener('click', () => applyWeight(weightIdx + 1));
+    if (crumbToggleBtn) crumbToggleBtn.addEventListener('click', (e) => {
+      try { e.stopPropagation(); } catch (_) {}
+      setCrumbsVisible(!crumbsVisible);
     });
+    // Floating menu dismiss (v0.0.51): outside click / Esc closes, crumb click
+    // navigates + closes via navigateTo (crumbsVisible=false).
+    document.addEventListener('click', (e) => {
+      if (!crumbsVisible) return;
+      try {
+        if (crumbsEl && crumbsEl.contains(e.target)) return;
+        if (crumbToggleBtn && crumbToggleBtn.contains(e.target)) return;
+      } catch (_) {}
+      setCrumbsVisible(false);
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && crumbsVisible) setCrumbsVisible(false);
+    });
+    window.addEventListener('resize', () => { if (crumbsVisible) positionCrumbMenu(); });
     pageUp.addEventListener('click', () => {
       if (page > 0) { page--; render(); savePlace(); }
     });
@@ -1973,7 +2170,7 @@
     });
   </script>
   <script>
-    // Alt-key element ID peek: hold Alt to show mono badges with friendly IDs.
+    // Alt-key element ID peek: hold Alt to show badges with friendly IDs.
     // Click a badge to copy its ID; release Alt or press Esc to hide.
     (() => {
       let badges = [];
@@ -1997,6 +2194,7 @@
         push(document.getElementById('font-btn'), 'font-btn');
         push(document.getElementById('spacing-btn'), 'spacing-btn');
         push(document.getElementById('leading-btn'), 'leading-btn');
+        push(document.getElementById('weight-btn'), 'weight-btn');
         push(document.getElementById('home-btn'), 'home-btn');
         push(document.getElementById('level-back-btn'), 'back-btn');
         push(document.getElementById('crumb-toggle-btn'), 'crumb-toggle-btn');

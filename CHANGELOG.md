@@ -3,6 +3,40 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.56] - 2026-09-13 - Pagers in level-nav row
+- `#page-up` + `#page-down` moved from `#stage` (top/bottom of `#nodes`) into `#level-nav` between `#level-back-btn` and `#crumb-toggle-btn`: row order now `home, back, page-up, page-down, crumb-toggle`.
+- `.pager-btn` resized `36x28`/`10px radius` -> `24x24`/`8px` ghost (`inline-flex` centered, `padding:0`) to match `home/back/crumb-toggle`; `#level-nav` + hover/active selectors extended to `#page-up/#page-down` (light + darkmode); gap stays `8px`.
+- `updateNav()` owns all row visibility: row shows when inside (`currentParentId`) OR paging needed (`page>0` or `page<pages-1`); `home/back/crumb-toggle` only when inside, pagers only when their turn exists; `render()` drops its direct pager toggles and delegates to `updateNav()` so root paging stays reachable while the row hides when idle at root.
+- Kept: drill, paging math (`computePages`/`clampPage`), arrows, validation, fonts/weights lazy whole-page, wrap, Alt peek ids (`page-up/page-down`) unchanged, hot reload, ripple off.
+
+## [v0.0.55] - 2026-09-13 - Lazy-load font weights per weight
+- `NODE_FONTS` drops multi-weight `css` slugs for per-weight `fam` + `weights` (`JetBrains+Mono [300,400,600,800]`, `IBM+Plex+Mono [300,400,600,700]`, `Space+Mono [400,700]`, `Lexend`/`Inter+Tight [300,400,600,800]`, `System UI/Mono/Georgia fam:null` no load); new `fontWeightFor(font, want)` nearest-match map (exact wins, else closest: `Space 300->400`, `600/800->700`, `Plex 800->700`) + `fontCssFor(font, want)` single-`wght` slug (`Fam:wght@400`).
+- `ensureWebfont(i, wantWeight)` loads only the active weight's sheet (`css2?family=<fam>:wght@<mapped>&display=swap`, `data-lazy-font="<name>:<mapped>"`, cache per family+weight in `loadedFontCss`, `onerror` retry); defaults to `NODE_WEIGHTS[weightIdx]` (default `400` only when a non-system font is chosen, never upfront for system stacks).
+- Weight state (`LS_WEIGHT`/`NODE_WEIGHTS`/`weightIdx`) moved above fonts so the initial `ensureWebfont(fontIdx)` loads the persisted weight only; `applyFont` passes `NODE_WEIGHTS[weightIdx]`, `applyWeight` calls `ensureWebfont(fontIdx, ...)` + `document.fonts.ready` reflow (`autoGrow`/`updateCaret`) like `applyFont`.
+- Kept: whole-page var, wrap, spacing/leading/weight cycle, drill, paging, arrows, validation, prune, crumbs, Alt peek, hot reload, ripple off.
+
+## [v0.0.54] - 2026-09-13 - System UI default, page-wide font cycle
+- Default stack is now System UI (`system-ui, -apple-system, sans-serif`): `:root` gains `--page-font` (same value in `--node-font`), `body` + `#status` + `#level-title` + all buttons/crumbs/badges (`pager`, `add`, `home/back/crumb-toggle`, `font/spacing/leading/weight`, `crumb-btn`, `open-btn`, `version`, `id-badge`) use `var(--page-font)` instead of hardcoded mono/system stacks; fresh load fetches zero Google Fonts.
+- `NODE_FONTS` reordered System UI first (`System UI -> System Mono -> JetBrains Mono -> IBM Plex Mono -> Space Mono -> Lexend -> Inter Tight -> Georgia -> back`); `applyFont` + load set both `--page-font` and `--node-font` to the same stack so nodes/inputs keep sharing for caret while the whole page follows; lazy `ensureWebfont` + `document.fonts.ready` + `autoGrow`/`updateCaret` unchanged.
+- Persists in same `localStorage 'node-font-idx'` (validated int), click still flashes `Font: <name>` in `#status` for ~1.2s; note old idx values now map to the new order (e.g. stored `0` was System Mono, now System UI).
+- Kept: wrap, spacing/leading/weight vars, drill, paging, arrows, validation, prune, crumbs floating, Alt peek, hot reload, ripple off, B/W mono colors (only fonts change).
+
+## [v0.0.53] - 2026-09-13 - Font-weight cycler
+- New tiny ghost `#weight-btn` (`B`, 24px rounded 8px, fixed bottom-left at `left:102px` next to `#leading-btn`, mono label, darkmode invert): cycles base node weight `300 -> 400 -> 600 -> 800 -> back`, default `400` (idx 1).
+- `.root-input` + `.solid-text` gain `font-weight:var(--node-weight)`; `:root` gains `--node-weight:400`; `.letter` base + `thicken-press`/`thicken-press-dark` `from` use the var so the press starts at the cycled base and still thickens to `800` max; reload solids (`animate:false`) keep `800` like the animated end.
+- Persists in `localStorage 'node-weight-idx'` (validated int, applied on load), click shows `Weight <val>` (e.g. `Weight 600`) in `#status` for ~1.2s then `updateStatus()` restores, `autoGrow` + `updateCaret` re-run (caret canvas/mirror already copy `fontWeight`); Alt peek adds `weight-btn` badge.
+- Lazy fonts untouched: only loaded weights render natively (e.g. JetBrains 800, Plex 700), missing steps synthesize via the stack fallback.
+- Kept: all features.
+
+## [v0.0.52] - 2026-09-13 - Dim input placeholder
+- `.root-input::placeholder` now dim mono gray at `opacity:0.35` with `font-style:normal` so typed text stands out: light `color:#888`, dark `color:#666` (was dark-only `#888` full opacity, light inherited full black/white).
+- Kept: title-case placeholder text, wrap, fonts var, spacing/leading, validation, drill, paging, arrows, Alt peek, hot reload, ripple off.
+
+## [v0.0.51] - 2026-09-13 - Crumbs floating dropdown menu
+- `#crumbs` is now a floating dropdown menu anchored on `#crumb-toggle-btn`: `position:fixed` + `z-index:5000`, mono pill container (`12px` radius, `1px` border, `6px` padding, `0 8px 24px` shadow, light `#fff`/dark `#000`), vertical list (`column`, full-width left-aligned `.crumb-btn`, `/` separators hidden, `40vh` scroll), positioned via `positionCrumbMenu()` drop-up above the toggle (centered, viewport-clamped, re-run on open/`updateNav`/`resize`).
+- Behavior: toggle click `stopPropagation` + `setCrumbsVisible(!)` opens/closes (syncs `aria-expanded`, `aria-haspopup` on button); crumb click `navigateTo` navigates + closes; `document` outside click + `Escape` close; `navigateTo` reset still closes; overlays content so open/close never shifts `#level-title` layout.
+- Kept: badge count, mono/darkmode, drill, paging, arrows, validation, fonts/spacing/leading, hot reload, ripple off.
+
 ## [v0.0.50] - 2026-09-13 - Tight leading step
 - `NODE_LEADINGS` gains `0.85` tight step: cycle now `0.85 -> 1.0 -> 1.3 -> 1.6 -> 2.0 -> back`, default idx still `1.3` (now idx 2).
 - Caret mirror already copies computed `lineHeight` and `autoGrow` re-runs on cycle, so textarea grow + wrap caret stay aligned at tight leading; acceptable tight, no overlap break.
