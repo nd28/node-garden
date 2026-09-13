@@ -3,6 +3,11 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.69] - 2026-09-13 - Corner focus translate glide
+
+- Focus corners glide outward on focus: unfocused corners sit 4px inward (`tl translate(4px,4px)`, `tr (-4px,4px)`, `bl (4px,-4px)`, `br (-4px,-4px)`) + small `10px`, focused settles to `translate(0,0)` + larger `14px` + outward offsets (`-6px`/`-10px`); `transform 0.2s ease` added to the existing `opacity/width/height/top/right/bottom/left` transition, animate-in only.
+- Kept: per-letter glow, shrink `0.98` + lift, mono/darkmode, `prefers-reduced-motion` disables transition, all features.
+
 ## [v0.0.68] - 2026-09-13 - Polish status hint as centered pill
 
 - `#status` polished from plain fixed-bottom gray to minimal centered pill: `bottom:24px` (kept clear of `#level-nav`/`#add-node-btn` flow + `#version` bottom-right) + `left:50%` + `transform:translateX(-50%)`, page font `12px`, `letter-spacing:0.02em`, `opacity:0.6`, subtle bg `rgba(0,0,0,0.04)` light / `rgba(255,255,255,0.06)` dark, `padding:4px 10px`, `radius:999px`, no border, single-line ellipsis (`white-space:nowrap`, `max-width:92vw`, `pointer-events:none`).
