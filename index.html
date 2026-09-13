@@ -1,0 +1,961 @@
+<!-- button-app v0.0.18 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Round Button</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #fff;
+    color: #000;
+    font-family: system-ui, sans-serif;
+    overflow: hidden;
+  }
+  #round-btn {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: none;
+    background: #000;
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, opacity 0.3s ease, background 0.15s ease;
+  }
+  #round-btn:hover { background: #222; transform: scale(1.05); }
+  #round-btn:active { transform: scale(0.96); }
+  #round-btn.shrink {
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* Stage: vertical stack centered (pager + nodes + add). Not scrollable. */
+  #stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    max-height: 100vh;
+    overflow: visible;
+  }
+  #nodes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    overflow: visible;
+  }
+  #nodes.show-4 { gap: 8px; }
+  .root-node {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+    min-height: 80px;
+  }
+  #nodes.show-4 .root-node { min-height: 60px; }
+  .root-input {
+    display: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 2rem;
+    text-align: center;
+    min-width: 200px;
+    caret-color: #000;
+    color: #000;
+    text-transform: none;
+    transform: scale(0);
+    opacity: 0;
+  }
+  #nodes.show-4 .root-input { font-size: 1.6rem; }
+  /* Thick fake caret (4px): native caret hidden via JS -> transparent,
+     this block bar follows the true caret position. Mono only. Shared one. */
+  #fake-caret {
+    position: fixed;
+    display: none;
+    width: 4px;
+    height: 38px;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    animation: caretBlink 1.06s steps(1) infinite;
+  }
+  #fake-caret.on { display: block; }
+  @keyframes caretBlink {
+    0%, 45% { opacity: 1; }
+    50%, 95% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  .root-input.show {
+    display: block;
+    animation: grow 0.3s ease forwards;
+  }
+  @keyframes grow {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .root-input.edit-pop {
+    display: block;
+    animation: editUnblur 0.25s ease forwards;
+  }
+  @keyframes editUnblur {
+    from { filter: blur(8px); opacity: 0; transform: scale(1); }
+    50% { filter: blur(4px); opacity: 1; transform: scale(1.05); }
+    to { filter: blur(0); opacity: 1; transform: scale(1); }
+  }
+  .root-input.fade-blur-out {
+    display: block;
+    animation: editBlurOut 0.25s ease forwards;
+  }
+  @keyframes editBlurOut {
+    from { filter: blur(0); opacity: 1; transform: scale(1); }
+    to { filter: blur(8px); opacity: 0; transform: scale(1); }
+  }
+  .solid-wrap {
+    display: none;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+    min-height: 80px;
+  }
+  #nodes.show-4 .solid-wrap { min-height: 60px; }
+  .solid-wrap.show { display: flex; }
+  .ripple {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 120px;
+    height: 120px;
+    margin: -60px 0 0 -60px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.18);
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .solid-wrap.show .ripple { animation: ripple 0.6s ease-out; }
+  @keyframes ripple {
+    from { transform: scale(0); opacity: 0.8; }
+    to { transform: scale(2); opacity: 0; }
+  }
+  .solid-text {
+    position: relative;
+    font-size: 2rem;
+    text-align: center;
+    color: #000;
+    letter-spacing: 0.04em;
+    text-shadow: 0 1px 0 #fff, 0 -1px 1px rgba(0,0,0,0.3);
+    cursor: pointer;
+    user-select: none;
+    transition: filter 0.25s ease, opacity 0.25s ease, transform 0.18s ease, text-shadow 0.18s ease;
+  }
+  #nodes.show-4 .solid-text { font-size: 1.6rem; }
+  .solid-text.blur-out {
+    filter: blur(8px);
+    opacity: 0;
+  }
+  .solid-text.solid-unblur {
+    animation: solidUnblur 0.25s ease forwards;
+  }
+  @keyframes solidUnblur {
+    from { filter: blur(8px); opacity: 0; }
+    50% { filter: blur(4px); opacity: 1; }
+    to { filter: blur(0); opacity: 1; }
+  }
+  .solid-text .letter {
+    display: inline-block;
+    font-weight: 400;
+    animation: thicken-press 0.45s ease forwards;
+  }
+  @keyframes thicken-press {
+    from {
+      font-weight: 400;
+      transform: scale(1.18);
+      text-shadow: 0 2px 2px rgba(0,0,0,0.2), 0 0 0 #fff;
+    }
+    to {
+      font-weight: 800;
+      transform: scale(1);
+      text-shadow: 0 1px 0 #fff, 0 -1px 1px rgba(0,0,0,0.3);
+    }
+  }
+  /* Pager buttons: small mono rounded arrows. */
+  .pager-btn {
+    width: 36px;
+    height: 28px;
+    border-radius: 10px;
+    border: 1px solid #000;
+    background: #000;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .pager-btn:hover { background: #222; }
+  .pager-btn:active { transform: scale(0.94); }
+  /* Add-node button: ~36px, rounded 12px, "+" text, random bounce via JS. Mono only. */
+  #add-node-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    border: 1px solid #000;
+    background: #000;
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.7s ease, background 0.15s ease;
+  }
+  #add-node-btn:hover { background: #222; }
+  #add-node-btn:active { transform: scale(0.94); }
+  #status { position: fixed; bottom: 24px; color: #555; }
+  #version { position: fixed; bottom: 8px; right: 12px; font-size: 11px; color: #888; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  #version a { color: inherit; text-decoration: none; font-family: inherit; }
+  #version a:hover { text-decoration: underline; }
+  /* Alt-key ID peek badges: mono pills, fixed near target. */
+  .id-badge {
+    position: fixed;
+    z-index: 9999;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    line-height: 1;
+    padding: 3px 7px;
+    border-radius: 8px;
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+  .id-badge:hover { background: #222; }
+  .id-badge.copied { background: #fff; color: #000; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #000; color: #fff; }
+    #round-btn { background: #fff; color: #000; box-shadow: 0 4px 14px rgba(255,255,255,0.2); }
+    #round-btn:hover { background: #ddd; }
+    .root-input { color: #fff; caret-color: #fff; }
+    .root-input::placeholder { color: #888; }
+    #fake-caret { background: #fff; }
+    .ripple { background: rgba(255,255,255,0.18); }
+    .solid-text {
+      color: #fff;
+      text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.3);
+    }
+    .solid-text .letter { animation-name: thicken-press-dark; }
+    @keyframes thicken-press-dark {
+      from {
+        font-weight: 400;
+        transform: scale(1.18);
+        text-shadow: 0 2px 2px rgba(255,255,255,0.2), 0 0 0 #000;
+      }
+      to {
+        font-weight: 800;
+        transform: scale(1);
+        text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.3);
+      }
+    }
+    .pager-btn { background: #fff; color: #000; border-color: #fff; }
+    .pager-btn:hover { background: #ddd; }
+    #add-node-btn { background: #fff; color: #000; border-color: #fff; }
+    #add-node-btn:hover { background: #ddd; }
+    #status { color: #999; }
+    #version { color: #888; }
+    .id-badge { background: #fff; color: #000; border-color: #fff; }
+    .id-badge:hover { background: #ddd; }
+    .id-badge.copied { background: #000; color: #fff; border-color: #fff; }
+  }
+</style>
+</head>
+<body>
+  <button id="round-btn" style="display:none">Write</button>
+  <div id="stage">
+    <button id="page-up" class="pager-btn" aria-label="Previous page" style="display:none">&#9650;</button>
+    <div id="nodes" aria-live="polite"></div>
+    <button id="page-down" class="pager-btn" aria-label="Next page" style="display:none">&#9660;</button>
+    <button id="add-node-btn" aria-label="Add root node" title="Add root node">+</button>
+  </div>
+  <div id="fake-caret" aria-hidden="true"></div>
+  <p id="status">Waiting for writing...</p>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.18</a></div>
+  <script>
+    const nodesEl = document.getElementById('nodes');
+    const addBtn = document.getElementById('add-node-btn');
+    const pageUp = document.getElementById('page-up');
+    const pageDown = document.getElementById('page-down');
+    const status = document.getElementById('status');
+    const fakeCaret = document.getElementById('fake-caret');
+    const caretMeas = document.createElement('canvas').getContext('2d');
+    const LS_GRAPH = 'root-graph-json';
+    const LS_NEW = 'root-nodes-json';
+    const LS_OLD = 'root-node-word';
+
+    function toTitleCase(s) {
+      return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+    function newNodeId() {
+      try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (_) {}
+      return 'n-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
+    }
+
+    // Graph DSA for root-node persistence.
+    // nodes: Map<id, {id, word, createdAt, order}>, adj: Map<id, Set<id>>,
+    // order: [id] insertion order driving paging. Edges are linear chain
+    // (prev -> next) for now; addEdge() is ready for future links.
+    class Graph {
+      constructor() {
+        this.nodes = new Map();
+        this.adj = new Map();
+        this.order = [];
+      }
+      get size() { return this.order.length; }
+      addNode(word) {
+        const w = word || '';
+        const id = newNodeId();
+        const node = { id, word: w, createdAt: Date.now(), order: this.order.length };
+        this.nodes.set(id, node);
+        this.adj.set(id, new Set());
+        if (this.order.length > 0) this.addEdge(this.order[this.order.length - 1], id);
+        this.order.push(id);
+        return id;
+      }
+      updateNode(id, word) {
+        const n = this.nodes.get(id);
+        if (!n) return;
+        n.word = word;
+      }
+      removeNode(id) {
+        if (!this.nodes.has(id)) return false;
+        const pos = this.order.indexOf(id);
+        const prev = pos > 0 ? this.order[pos - 1] : null;
+        const next = (pos !== -1 && pos < this.order.length - 1) ? this.order[pos + 1] : null;
+        this.nodes.delete(id);
+        this.adj.delete(id);
+        for (const set of this.adj.values()) set.delete(id);
+        if (pos !== -1) this.order.splice(pos, 1);
+        if (prev && next) this.addEdge(prev, next);
+        for (let i = 0; i < this.order.length; i++) {
+          const n = this.nodes.get(this.order[i]);
+          if (n) n.order = i;
+        }
+        return true;
+      }
+      getNode(id) { return this.nodes.get(id) || null; }
+      getOrderedNodes() {
+        const out = [];
+        for (const id of this.order) {
+          const n = this.nodes.get(id);
+          if (n) out.push(n);
+        }
+        return out;
+      }
+      addEdge(fromId, toId) {
+        if (!this.nodes.has(fromId) || !this.nodes.has(toId)) return;
+        if (!this.adj.has(fromId)) this.adj.set(fromId, new Set());
+        this.adj.get(fromId).add(toId);
+      }
+      getEdges() {
+        const edges = [];
+        for (const [from, set] of this.adj) {
+          for (const to of set) edges.push({ from, to });
+        }
+        return edges;
+      }
+      toJSON() {
+        return { nodes: [...this.nodes.values()], edges: this.getEdges(), order: [...this.order] };
+      }
+      static fromJSON(obj) {
+        if (!obj || !Array.isArray(obj.nodes) || !Array.isArray(obj.order)) return null;
+        const g = new Graph();
+        const byId = new Map();
+        for (const n of obj.nodes) {
+          if (!n || typeof n.id !== 'string') continue;
+          byId.set(n.id, n);
+        }
+        g.order = [];
+        for (let i = 0; i < obj.order.length; i++) {
+          const id = obj.order[i];
+          const n = byId.get(id);
+          if (!n) continue;
+          g.nodes.set(id, {
+            id,
+            word: String(n.word || ''),
+            createdAt: Number(n.createdAt) || Date.now(),
+            order: g.order.length,
+          });
+          g.adj.set(id, new Set());
+          g.order.push(id);
+        }
+        if (g.order.length === 0) return null;
+        if (Array.isArray(obj.edges)) {
+          for (const e of obj.edges) {
+            const f = e && (e.from !== undefined ? e.from : e[0]);
+            const t = e && (e.to !== undefined ? e.to : e[1]);
+            if (typeof f === 'string' && typeof t === 'string') g.addEdge(f, t);
+          }
+        }
+        // Ensure linear chain edges exist for current order.
+        for (let i = 1; i < g.order.length; i++) g.addEdge(g.order[i - 1], g.order[i]);
+        return g;
+      }
+    }
+
+    let graph = new Graph();
+    let page = 0;
+
+    // Store helpers used by render/paging/add/edit.
+    function getOrderedNodes() { return graph.getOrderedNodes(); }
+    function addNode(word) { return graph.addNode(word); }
+    function updateNode(id, word) { return graph.updateNode(id, word); }
+    function nodeIdAt(idx) { return graph.order[idx]; }
+    function getWordAt(idx) {
+      const n = graph.getNode(nodeIdAt(idx));
+      return n ? n.word : '';
+    }
+    function setWordAt(idx, word) {
+      const id = nodeIdAt(idx);
+      if (id !== undefined) graph.updateNode(id, word);
+    }
+    function saveGraph() {
+      try { localStorage.setItem(LS_GRAPH, JSON.stringify(graph.toJSON())); } catch (_) {}
+    }
+    function saveNodes() { saveGraph(); }
+    // Prune empty waiting nodes down to max 1 (keep first empty in order).
+    // Ensures at least 1 node exists so the user can always type.
+    function pruneEmptiesToOne() {
+      const ordered = graph.getOrderedNodes();
+      let keptEmpty = false;
+      let changed = false;
+      for (const n of ordered) {
+        if (!(n.word || '').trim()) {
+          if (!keptEmpty) keptEmpty = true;
+          else { graph.removeNode(n.id); changed = true; }
+        }
+      }
+      if (graph.size === 0) { graph.addNode(''); changed = true; }
+      if (changed) saveGraph();
+      return changed;
+    }
+    // Remove a single empty node by id (blur/Enter with empty trim).
+    // Keeps it if it is the only node; otherwise removes + re-renders.
+    function pruneEmptyNodeById(id) {
+      const n = id ? graph.getNode(id) : null;
+      if (!n) return false;
+      if ((n.word || '').trim()) return false;
+      // Synced: current input value is already trimmed-empty; ensure stored empty.
+      if (graph.size <= 1) {
+        graph.updateNode(id, '');
+        saveGraph();
+        updateStatus();
+        return false;
+      }
+      graph.removeNode(id);
+      saveGraph();
+      clampPage();
+      render();
+      return true;
+    }
+    function loadGraph() {
+      // Prefer graph key.
+      try {
+        const raw = localStorage.getItem(LS_GRAPH);
+        if (raw !== null) {
+          const g = Graph.fromJSON(JSON.parse(raw));
+          if (g) { graph = g; return; }
+        }
+      } catch (_) {}
+      // Migrate legacy list key 'root-nodes-json'.
+      try {
+        const raw = localStorage.getItem(LS_NEW);
+        if (raw !== null) {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr)) {
+            const g = new Graph();
+            const words = arr.map((x) => toTitleCase(String(x || '').trim()));
+            for (const w of words) g.addNode(w);
+            if (g.size === 0) g.addNode('');
+            graph = g;
+            saveGraph();
+            return;
+          }
+        }
+      } catch (_) {}
+      // Migrate old single key 'root-node-word'.
+      try {
+        const old = localStorage.getItem(LS_OLD);
+        if (old !== null) {
+          const g = new Graph();
+          const w = toTitleCase((old || '').trim());
+          g.addNode(w || '');
+          graph = g;
+          saveGraph();
+          try { localStorage.removeItem(LS_OLD); } catch (_) {}
+          return;
+        }
+      } catch (_) {}
+      graph = new Graph();
+      graph.addNode('');
+    }
+    function loadNodes() { loadGraph(); pruneEmptiesToOne(); }
+
+    // Paging: pages of 3, but if total<=4 show all (adjust layout to fit 4).
+    // If total>=5: chunk 3 while remaining>4, last chunk takes remainder
+    // (2, 3, or 4). So remainder==1 merges into a final 4.
+    // e.g. 7 -> [3,4]; 9 -> [3,3,3]; 10 -> [3,3,4].
+    function computePages(total) {
+      if (total <= 0) return [[]];
+      if (total <= 4) {
+        const one = [];
+        for (let i = 0; i < total; i++) one.push(i);
+        return [one];
+      }
+      const pages = [];
+      let start = 0;
+      while (start < total) {
+        const rem = total - start;
+        if (rem > 4) {
+          pages.push([start, start + 1, start + 2]);
+          start += 3;
+        } else {
+          const last = [];
+          for (let i = start; i < total; i++) last.push(i);
+          pages.push(last);
+          break;
+        }
+      }
+      return pages;
+    }
+    function clampPage() {
+      const pages = computePages(graph.size);
+      if (page < 0) page = 0;
+      if (page > pages.length - 1) page = pages.length - 1;
+      return pages;
+    }
+
+    // Shared thick (4px) fake caret for whichever .root-input is focused.
+    function caretTextWidth(input, text) {
+      const cs = getComputedStyle(input);
+      caretMeas.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+      return caretMeas.measureText(text || '').width;
+    }
+    function updateCaret() {
+      const input = document.activeElement;
+      if (!input || !input.classList || !input.classList.contains('root-input')) {
+        fakeCaret.classList.remove('on');
+        return;
+      }
+      const visible = input.classList.contains('show') || input.classList.contains('edit-pop');
+      if (!visible) { fakeCaret.classList.remove('on'); return; }
+      let pos = 0;
+      try { pos = input.selectionStart || 0; } catch (_) { pos = (input.value || '').length; }
+      try { if (input.selectionStart !== input.selectionEnd) { fakeCaret.classList.remove('on'); return; } } catch (_) {}
+      const rect = input.getBoundingClientRect();
+      if (rect.width === 0) { fakeCaret.classList.remove('on'); return; }
+      const val = input.value || '';
+      const fullW = caretTextWidth(input, val);
+      const preW = caretTextWidth(input, val.slice(0, pos));
+      const clientW = input.clientWidth || rect.width;
+      let x;
+      if (fullW <= clientW) {
+        x = rect.left + (rect.width - fullW) / 2 + preW;
+      } else {
+        x = rect.left + preW - (input.scrollLeft || 0);
+      }
+      const h = Math.round(rect.height * 0.85) || 34;
+      fakeCaret.style.height = h + 'px';
+      fakeCaret.style.left = Math.round(x - 2) + 'px';
+      fakeCaret.style.top = Math.round(rect.top + (rect.height - h) / 2) + 'px';
+      fakeCaret.classList.add('on');
+    }
+    function hideCaretDelayed() {
+      fakeCaret.classList.remove('on');
+      setTimeout(() => requestAnimationFrame(updateCaret), 320);
+    }
+
+    function updateStatus() {
+      const pages = computePages(graph.size);
+      const vis = pages[page] || [];
+      const anyEmpty = vis.some((i) => !(getWordAt(i) || '').trim());
+      const editing = document.activeElement &&
+        document.activeElement.classList &&
+        document.activeElement.classList.contains('root-input');
+      if (editing) {
+        status.textContent = 'Editing... press Enter';
+      } else if (anyEmpty) {
+        status.textContent = 'Waiting for writing... press Enter';
+      } else {
+        status.textContent = 'Click text to edit';
+      }
+    }
+
+    function showInput(nodeEl, fromEdit) {
+      const input = nodeEl.querySelector('.root-input');
+      const wrap = nodeEl.querySelector('.solid-wrap');
+      wrap.classList.remove('show');
+      if (fromEdit) {
+        input.classList.remove('show');
+        input.classList.remove('edit-pop');
+        input.classList.remove('fade-blur-out');
+        void input.offsetWidth;
+        input.classList.add('edit-pop');
+      } else {
+        input.classList.remove('edit-pop');
+        input.classList.remove('fade-blur-out');
+        input.classList.add('show');
+      }
+      input.focus();
+      try { input.setSelectionRange(input.value.length, input.value.length); } catch (_) {}
+      hideCaretDelayed();
+      updateStatus();
+    }
+
+    function showSolid(nodeEl, idx, word) {
+      if (nodeEl._solidifying) return;
+      const input = nodeEl.querySelector('.root-input');
+      const inputVisible = input.classList.contains('show') || input.classList.contains('edit-pop');
+      if (inputVisible) {
+        nodeEl._solidifying = true;
+        input.classList.remove('show');
+        input.classList.remove('edit-pop');
+        void input.offsetWidth;
+        input.classList.add('fade-blur-out');
+        setTimeout(() => {
+          input.classList.remove('fade-blur-out');
+          nodeEl._solidifying = false;
+          showSolidNow(nodeEl, idx, word);
+        }, 250);
+      } else {
+        showSolidNow(nodeEl, idx, word);
+      }
+    }
+
+    function showSolidNow(nodeEl, idx, word, opts) {
+      const animate = !opts || opts.animate !== false;
+      setWordAt(idx, word);
+      saveGraph();
+      const input = nodeEl.querySelector('.root-input');
+      const wrap = nodeEl.querySelector('.solid-wrap');
+      const solid = nodeEl.querySelector('.solid-text');
+      const ripple = nodeEl.querySelector('.ripple');
+      fakeCaret.classList.remove('on');
+      input.classList.remove('show');
+      input.classList.remove('edit-pop');
+      input.classList.remove('fade-blur-out');
+      solid.innerHTML = '';
+      [...word].forEach((ch) => {
+        const sp = document.createElement('span');
+        sp.className = 'letter';
+        sp.textContent = ch === ' ' ? '\u00A0' : ch;
+        if (!animate) {
+          sp.style.animation = 'none';
+          sp.style.fontWeight = '800';
+        }
+        solid.appendChild(sp);
+      });
+      solid.classList.remove('blur-out');
+      solid.classList.remove('solid-unblur');
+      wrap.classList.remove('show');
+      if (animate) {
+        ripple.style.animation = 'none';
+        void ripple.offsetWidth;
+        ripple.style.animation = '';
+        void wrap.offsetWidth;
+        wrap.classList.add('show');
+        void solid.offsetWidth;
+        solid.classList.add('solid-unblur');
+      } else {
+        ripple.style.animation = 'none';
+        wrap.classList.add('show');
+      }
+      updateStatus();
+    }
+
+    function createNodeEl(idx) {
+      const nodeEl = document.createElement('div');
+      nodeEl.className = 'root-node';
+      nodeEl.dataset.idx = String(idx);
+
+      const input = document.createElement('input');
+      input.className = 'root-input';
+      input.type = 'text';
+      input.placeholder = '';
+      input.autocomplete = 'off';
+      input.value = getWordAt(idx) || '';
+      input.style.caretColor = 'transparent';
+
+      const wrap = document.createElement('div');
+      wrap.className = 'solid-wrap';
+      const ripple = document.createElement('div');
+      ripple.className = 'ripple';
+      const solid = document.createElement('div');
+      solid.className = 'solid-text';
+      solid.title = 'Click to edit';
+      wrap.appendChild(ripple);
+      wrap.appendChild(solid);
+
+      nodeEl.appendChild(input);
+      nodeEl.appendChild(wrap);
+
+      input.addEventListener('input', () => {
+        let start = 0, end = 0;
+        try { start = input.selectionStart; end = input.selectionEnd; } catch (_) {}
+        input.value = toTitleCase(input.value);
+        try { input.setSelectionRange(start, end); } catch (_) {}
+        requestAnimationFrame(updateCaret);
+      });
+      input.addEventListener('keyup', () => requestAnimationFrame(updateCaret));
+      input.addEventListener('click', () => requestAnimationFrame(updateCaret));
+      input.addEventListener('focus', () => { requestAnimationFrame(updateCaret); updateStatus(); });
+      input.addEventListener('scroll', () => requestAnimationFrame(updateCaret));
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          if (nodeEl._solidifying) return;
+          const w = input.value.trim();
+          if (w) {
+            showSolid(nodeEl, idx, toTitleCase(w));
+          } else {
+            setWordAt(idx, '');
+            pruneEmptyNodeById(nodeIdAt(idx));
+          }
+        }
+      });
+      input.addEventListener('blur', () => {
+        fakeCaret.classList.remove('on');
+        if (nodeEl._solidifying) return;
+        if (wrap.classList.contains('show')) return;
+        if (!input.classList.contains('show') && !input.classList.contains('edit-pop')) return;
+        const w = input.value.trim();
+        if (w) {
+          showSolid(nodeEl, idx, toTitleCase(w));
+        } else {
+          setWordAt(idx, '');
+          pruneEmptyNodeById(nodeIdAt(idx));
+        }
+      });
+      solid.addEventListener('click', () => {
+        solid.classList.remove('solid-unblur');
+        solid.classList.add('blur-out');
+        setTimeout(() => {
+          solid.classList.remove('blur-out');
+          input.value = getWordAt(idx) || '';
+          showInput(nodeEl, true);
+        }, 250);
+      });
+
+      // Initial per-node state: empty waits with input, word shows engraved solid.
+      const saved = (getWordAt(idx) || '').trim();
+      if (saved) {
+        const w = toTitleCase(saved);
+        setWordAt(idx, w);
+        input.value = w;
+        showSolidNow(nodeEl, idx, w, { animate: false });
+      } else {
+        setWordAt(idx, '');
+        input.value = '';
+        wrap.classList.remove('show');
+        input.classList.remove('edit-pop');
+        input.classList.remove('fade-blur-out');
+        input.classList.add('show');
+      }
+      return nodeEl;
+    }
+
+    function render(focusIdx) {
+      const pages = clampPage();
+      const vis = pages[page] || [];
+      nodesEl.innerHTML = '';
+      nodesEl.classList.toggle('show-4', vis.length === 4);
+      vis.forEach((idx) => {
+        nodesEl.appendChild(createNodeEl(idx));
+      });
+      pageUp.style.display = page > 0 ? '' : 'none';
+      pageDown.style.display = page < pages.length - 1 ? '' : 'none';
+      updateStatus();
+      if (focusIdx !== undefined && vis.includes(focusIdx)) {
+        const el = nodesEl.querySelector('.root-node[data-idx="' + focusIdx + '"]');
+        if (el) {
+          const input = el.querySelector('.root-input');
+          if (input && input.classList.contains('show')) {
+            input.focus();
+            hideCaretDelayed();
+          }
+        }
+      } else if (focusIdx === 'first-empty-visible') {
+        const emptyEl = [...nodesEl.querySelectorAll('.root-node')].find((el) => {
+          const i = Number(el.dataset.idx);
+          return !(getWordAt(i) || '').trim();
+        });
+        if (emptyEl) {
+          const input = emptyEl.querySelector('.root-input');
+          if (input) { input.focus(); hideCaretDelayed(); }
+        }
+      }
+    }
+
+    addBtn.addEventListener('click', () => {
+      graph.addNode('');
+      saveGraph();
+      const pages = computePages(graph.size);
+      page = pages.length - 1;
+      render(graph.size - 1);
+    });
+    pageUp.addEventListener('click', () => {
+      if (page > 0) { page--; render(); }
+    });
+    pageDown.addEventListener('click', () => {
+      const pages = computePages(graph.size);
+      if (page < pages.length - 1) { page++; render(); }
+    });
+
+    window.addEventListener('resize', updateCaret);
+
+    // Add-node button bounce: newborn exploring within 3px radius every ~800ms.
+    setInterval(() => {
+      const x = (Math.random() * 6 - 3).toFixed(2);
+      const y = (Math.random() * 6 - 3).toFixed(2);
+      addBtn.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+    }, 800);
+
+    // Init: graph drives center. Migrate legacy keys if present.
+    loadNodes();
+    page = 0;
+    render('first-empty-visible');
+    // Autofocus first empty visible input on load (waiting state).
+    requestAnimationFrame(() => {
+      const emptyEl = [...nodesEl.querySelectorAll('.root-node')].find((el) => {
+        const i = Number(el.dataset.idx);
+        return !(getWordAt(i) || '').trim();
+      });
+      if (emptyEl) {
+        const input = emptyEl.querySelector('.root-input');
+        if (input) { input.focus(); hideCaretDelayed(); }
+      }
+      updateStatus();
+    });
+  </script>
+  <script>
+    // Alt-key element ID peek: hold Alt to show mono badges with friendly IDs.
+    // Click a badge to copy its ID; release Alt or press Esc to hide.
+    (() => {
+      let badges = [];
+      let visible = false;
+      function isVisibleEl(el) {
+        if (!el) return false;
+        const cs = getComputedStyle(el);
+        if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      }
+      function collectTargets() {
+        const out = [];
+        const push = (el, id) => { if (el && isVisibleEl(el)) out.push({ el, id }); };
+        push(document.getElementById('round-btn'), 'write-btn');
+        push(document.getElementById('stage'), 'stage');
+        push(document.getElementById('page-up'), 'page-up');
+        push(document.getElementById('page-down'), 'page-down');
+        push(document.getElementById('add-node-btn'), 'add-btn');
+        push(document.getElementById('status'), 'status');
+        push(document.getElementById('version'), 'version');
+        document.querySelectorAll('.root-node').forEach((nodeEl) => {
+          const idx = nodeEl.dataset.idx || '0';
+          push(nodeEl.querySelector('.root-input'), 'node-' + idx + '-box');
+          push(nodeEl.querySelector('.solid-text'), 'node-' + idx + '-text');
+        });
+        return out;
+      }
+      function showPeek() {
+        if (visible) return;
+        visible = true;
+        hidePeek(true);
+        visible = true;
+        for (const { el, id } of collectTargets()) {
+          const r = el.getBoundingClientRect();
+          const b = document.createElement('div');
+          b.className = 'id-badge';
+          b.textContent = id;
+          b.dataset.peekId = id;
+          let top = r.top - 22;
+          if (top < 4) top = r.bottom + 4;
+          b.style.top = Math.round(top) + 'px';
+          b.style.left = Math.round(Math.max(4, r.left)) + 'px';
+          b.addEventListener('mousedown', (e) => e.preventDefault());
+          b.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            try { navigator.clipboard.writeText(id); } catch (_) {}
+            b.textContent = 'copied';
+            b.classList.add('copied');
+            setTimeout(() => {
+              if (b.isConnected) {
+                b.textContent = id;
+                b.classList.remove('copied');
+              }
+            }, 800);
+          });
+          document.body.appendChild(b);
+          badges.push(b);
+        }
+      }
+      function hidePeek(keepFlag) {
+        for (const b of badges) b.remove();
+        badges = [];
+        if (!keepFlag) visible = false;
+      }
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Alt' && !e.repeat) {
+          e.preventDefault();
+          showPeek();
+        } else if (e.key === 'Escape' && visible) {
+          hidePeek();
+        }
+      });
+      window.addEventListener('keyup', (e) => {
+        if (e.key === 'Alt') { e.preventDefault(); hidePeek(); }
+      });
+      window.addEventListener('blur', () => hidePeek());
+      window.addEventListener('resize', () => { if (visible) showPeekRefresh(); });
+      function showPeekRefresh() {
+        const was = visible;
+        hidePeek(true);
+        visible = false;
+        if (was) showPeek();
+      }
+    })();
+  </script>
+  <script>
+    // Dev hot reload: poll HEAD every 1s, reload if Last-Modified/ETag/length changed.
+    (() => {
+      const url = location.pathname;
+      const keyOf = (h) =>
+        (h.get('last-modified') || '') + '|' +
+        (h.get('content-length') || '') + '|' +
+        (h.get('etag') || '');
+      let last = null;
+      async function poll() {
+        try {
+          const r = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+          const k = keyOf(r.headers);
+          if (last === null) { last = k; return; }
+          if (k !== last) location.reload();
+        } catch (_) {}
+      }
+      poll().then(() => setInterval(poll, 1000));
+    })();
+  </script>
+</body>
+</html>
