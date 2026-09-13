@@ -3,6 +3,16 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.24] - 2026-09-13 - Smaller centered open button
+- `.open-btn` 28px -> 18px, font 16px -> 12px, radius 8px -> 6px, padding `0 4px`, `display:inline-flex` + `align-items:center` + `justify-content:center` (`line-height:1`) so `›` is vertically centered with `.solid-text`.
+- `.solid-wrap` gap 10px -> 8px, keeps `align-items:center` + `justify-content:center` (wrap + text + button centered vertically).
+- Kept: mono + darkmode, drill nav clean (no root/count), paging, validation, Alt peek, hot reload, ripple off.
+
+## [v0.0.23] - 2026-09-13 - Remove nav clutter at root
+- `updateNav`: at root (`currentParentId=null`) hides `#nav-bar`/`#crumbs` entirely (no `crumb-0`, no `Root` crumb); inside shows parent-word crumb trail only (no `Root` prefix, indices `crumb-0..n-1` over `crumbPath()`).
+- `#level-title`: root clears + hides; inside shows parent word only, no `(N children)`/`(N nodes)` count anywhere; CSS switches to `system-ui, sans-serif` (no monospace).
+- Kept: back button when inside, drill `›` open, paging, validation, mono crumbs/buttons, darkmode, Alt peek (auto-hides with `display:none`/empty rects, no code change needed), hot reload, ripple flag off, 24px add-btn.
+
 ## [v0.0.22] - 2026-09-13 - Ripple behind flag (off by default)
 - `FEATURES = { ripple: false }` near top of script + `shouldRipple()` helper (reads `localStorage 'feat-ripple'` override: `'1'`/`'true'` on, else flag; default off); `console.log('[features] ripple off')` when disabled; turn on by setting `FEATURES.ripple = true` or `localStorage feat-ripple=1`.
 - `showSolidNow`: flag off skips ripple restart (`animation='none'`, `display='none'`), keeps together-press thicken + `solid-unblur` fade; flag on restores existing 0.6s ripple animation. All else unchanged: mono, drill nav, paging, validation, thick caret, blur/fade, title-case, hot reload, 24px add-btn.

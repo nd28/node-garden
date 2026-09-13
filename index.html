@@ -1,4 +1,4 @@
-<!-- button-app v0.0.22 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.24 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -137,7 +137,7 @@
     position: relative;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     min-width: 200px;
     min-height: 80px;
   }
@@ -233,7 +233,7 @@
   }
   #add-node-btn:hover { background: #222; }
   #add-node-btn:active { transform: scale(0.94); }
-  /* Drill nav: back + crumbs + level title. Mono only. */
+  /* Drill nav: back + crumbs (mono) + level title (system font, parent word only). */
   #nav-bar {
     display: flex;
     flex-direction: column;
@@ -294,7 +294,7 @@
   #level-title {
     font-size: 13px;
     letter-spacing: 0.04em;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: system-ui, sans-serif;
     opacity: 0.8;
     max-width: 92vw;
     overflow: hidden;
@@ -303,14 +303,18 @@
   }
   /* Open-child affordance: small mono › pill next to solid text. */
   .open-btn {
-    width: 28px;
-    height: 28px;
+    width: 18px;
+    height: 18px;
     flex: 0 0 auto;
-    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border-radius: 6px;
     border: 1px solid #000;
     background: #000;
     color: #fff;
-    font-size: 16px;
+    font-size: 12px;
     line-height: 1;
     cursor: pointer;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -400,7 +404,7 @@
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <p id="status">Waiting for writing...</p>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.22</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.24</a></div>
   <script>
     const nodesEl = document.getElementById('nodes');
     const addBtn = document.getElementById('add-node-btn');
@@ -829,6 +833,7 @@
     const backBtn = document.getElementById('back-btn');
     const crumbsEl = document.getElementById('crumbs');
     const levelTitle = document.getElementById('level-title');
+    const navBar = document.getElementById('nav-bar');
 
     function updateStatus() {
       const pages = computePages(currentSize());
@@ -877,17 +882,17 @@
 
     function updateNav() {
       const p = getParentNode();
-      const list = currentList();
-      const n = list.length;
-      // Back button + header (parent word + count).
+      // Back button + header (parent word only, no count, no Root).
       backBtn.style.display = p ? '' : 'none';
       if (p) {
         const pw = (p.word || '').trim() || '(empty)';
-        levelTitle.textContent = pw + ' (' + n + (n === 1 ? ' child)' : ' children)');
+        levelTitle.textContent = pw;
+        levelTitle.style.display = '';
       } else {
-        levelTitle.textContent = n ? 'Root (' + n + (n === 1 ? ' node)' : ' nodes)') : 'Root';
+        levelTitle.textContent = '';
+        levelTitle.style.display = 'none';
       }
-      // Breadcrumb: Root / ... / Current.
+      // Breadcrumb: parent-word trail only when inside, hidden at root.
       crumbsEl.innerHTML = '';
       const mkCrumb = (label, targetId, isCurrent, crumbIdx) => {
         const b = document.createElement('button');
@@ -912,15 +917,16 @@
         return s;
       };
       if (!p) {
-        crumbsEl.appendChild(mkCrumb('Root', null, true, 0));
+        crumbsEl.style.display = 'none';
+        if (navBar) navBar.style.display = 'none';
       } else {
+        crumbsEl.style.display = '';
+        if (navBar) navBar.style.display = '';
         const chain = crumbPath(); // [...ancestors, current]
-        crumbsEl.appendChild(mkCrumb('Root', null, false, 0));
-        crumbsEl.appendChild(mkSep());
         chain.forEach((node, k) => {
           const isCur = k === chain.length - 1;
           const label = (node.word || '').trim() || '(empty)';
-          crumbsEl.appendChild(mkCrumb(label, node.id, isCur, k + 1));
+          crumbsEl.appendChild(mkCrumb(label, node.id, isCur, k));
           if (!isCur) crumbsEl.appendChild(mkSep());
         });
       }
