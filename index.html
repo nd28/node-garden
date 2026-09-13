@@ -1,4 +1,4 @@
-<!-- button-app v0.0.71 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.72 — on version bump: update #version footer + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -701,7 +701,8 @@
   }
   #keys-tip-btn:hover { background: #eee; }
   #keys-tip-btn:active { transform: scale(0.94); }
-  /* Floating shortcut card: mono pill, dim text, overlays content. */
+  /* Floating shortcut card: mono pill, dim text, overlays content.
+     v0.0.72: keys as <kbd> pills (.tip-key full opacity) + meaning dim (.tip-def 0.6). */
   #keys-tip-card {
     position: fixed;
     bottom: 40px;
@@ -722,6 +723,17 @@
     white-space: nowrap;
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   }
+  #keys-tip-card .tip-key {
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 700;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    padding: 0 4px;
+    background: rgba(127,127,127,0.12);
+    opacity: 1;
+  }
+  #keys-tip-card .tip-def { opacity: 0.6; }
   /* Alt-key ID peek badges: page-font pills, fixed near target. */
   .id-badge {
     position: fixed;
@@ -854,16 +866,16 @@
   <button id="weight-btn" aria-label="Cycle node font weight" title="Cycle node font weight">B</button>
   <button id="size-btn" aria-label="Cycle node font size" title="Cycle node font size">A+</button>
   </div>
-  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.71</a></div>
+  <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.72</a></div>
   <button id="keys-tip-btn" aria-label="Show keyboard shortcuts" title="Keyboard shortcuts" aria-haspopup="true" aria-expanded="false">?</button>
   <div id="keys-tip-card" role="dialog" aria-label="Keyboard shortcuts" style="display:none">
-    <div>Up / Down — move</div>
-    <div>Right — open</div>
-    <div>Left — back</div>
-    <div>+ — add</div>
-    <div>Enter — edit / save</div>
-    <div>Alt (hold) — peek IDs</div>
-    <div>Esc — close</div>
+    <div><span class="tip-key">Up</span> / <span class="tip-key">Down</span> <span class="tip-def">— move</span></div>
+    <div><span class="tip-key">Right</span> <span class="tip-def">— open</span></div>
+    <div><span class="tip-key">Left</span> <span class="tip-def">— back</span></div>
+    <div><span class="tip-key">+</span> <span class="tip-def">— add</span></div>
+    <div><span class="tip-key">Enter</span> <span class="tip-def">— edit / save</span></div>
+    <div><span class="tip-key">Alt</span> <span class="tip-def">(hold) — peek IDs</span></div>
+    <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');

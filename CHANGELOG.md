@@ -3,6 +3,11 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.72] - 2026-09-13 - Keys distinct from meaning in tip card
+
+- `#keys-tip-card` lines split into `<span class="tip-key">` pills (mono bold, `1px` bordered, `4px` radius, `0 4px` padding, subtle bg, full `opacity:1`) + `<span class="tip-def">` meaning (`opacity:0.6`); e.g. `Up / Down — move` -> two key pills + dim def.
+- Kept: card position/style, all shortcuts, toggle/dismiss, all features.
+
 ## [v0.0.71] - 2026-09-13 - Key shortcuts tip card
 
 - New tiny ghost `#keys-tip-btn` (`?`, 24px rounded 8px, fixed `bottom:8px` `right:64px` next to `#version` footer, page-font label, darkmode invert): toggles floating `#keys-tip-card` shortcut list (`aria-expanded` + `aria-haspopup`, `role="dialog"`).
