@@ -3,6 +3,13 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version` footer in `index.html` + add entry here.
 
+## [v0.0.37] - 2026-09-13 - Per-letter focus glow, no container box
+- Removed container `box-shadow` on focus (`.solid-text:focus`, `.root-input:focus`, `.root-node:focus` now `box-shadow:none`): no invisible-box look.
+- Focus cue keeps tiny shrink `scale(0.98)` + lift `translateY(-2px)` on the container (`outline:none`, 8px radius kept).
+- Glow moved to each letter: `.solid-text:focus .letter` adds `0 2px 6px rgba(0,0,0,0.25)` on top of the engraved shadow light / `rgba(255,255,255,0.25)` dark, `0.18s` `text-shadow` transition on `.letter`.
+- `.root-input:focus` (single element) also uses `text-shadow` glow instead of `box-shadow`; container transitions switched `box-shadow` -> `text-shadow`.
+- Kept: mono, primary/ghost, drill, paging, arrows incl Right/Left, stepFocus nav, validation, prune, crumbs toggle, Alt peek, hot reload, ripple off.
+
 ## [v0.0.36] - 2026-09-13 - Subtle focus shrink+glow, no ring
 - Removed keyboard focus rings (`.solid-text:focus` / `.root-input:focus-visible` 2px `currentColor` outline): focused states now `outline:none`, no border.
 - Focused node cue (input + solid): tiny shrink `scale(0.98)`, lift `translateY(-2px)`, soft glow `box-shadow 0 4px 12px rgba(0,0,0,0.12)` light / `rgba(255,255,255,0.12)` dark, `0.18s` transition, 8px radius.
