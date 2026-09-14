@@ -3,6 +3,16 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.87] - 2026-09-14 - Share node as URL link + read-only shared view
+
+- `#node-menu` gains `#menu-share` (`🔗 Share`, mono ghost like Read/Trash) beside `#menu-read`; click calls `shareNode(menuNodeId)` (menu stays open, no-op `Nothing to share` on missing/trashed id).
+- `shareBuildTree(nid)` serializes the subtree to compact `{v:1, root:{word,body,children:[...]}}` (trimmed titles+bodies, trashed skipped entirely, empty waiting promoted with children at parent level, cycle-safe `seen`); `shareEncode`/`shareDecode` unicode-safe base64 (no lib: `btoa(encodeURIComponent...))` / `atob` + `decodeURIComponent`, validated `v:1` + recursive clean, throws on bad input).
+- Full URL = `location.origin + pathname + #s=<b64>`; copies via `navigator.clipboard` (+ `execCommand` fallback), status `Link copied` (`Copy failed` when both fail); length guard `>4000` chars -> `Too big to share` (no crash); own graph never imported/touched.
+- New `#shared` read-only overlay (same paper `#shared-card` styles as `#reader`, light `#fff` / dark `#0a0a0a`, page font, `12px` radius + shadow): head (`#shared-title` `Shared node — <word>` + `#shared-close ✕`), `#shared-page` book content, foot (`#shared-prev ‹ Prev` + `#shared-count "N / M"` + `#shared-next Next ›`); `flattenShared` DFS + `SHARED_PER_PAGE=4` paging, `←/→` steps, close via X + `Esc` + backdrop.
+- Opened on load + `hashchange` via `checkShareHash()` (`#s=` parse `try/catch`, invalid -> `Invalid share link` + ignore, valid opens on top of own roots); `closeShared()` clears hash via `history.replaceState` (no reload) + `navigateTo(null)` back to own roots; list arrows/`+` guards skip when shared open (`isSharedOpen`).
+- Alt peek adds `menu-share`, `shared`, `shared-close`, `shared-prev`, `shared-next` badges (visible only when menu/overlay open).
+- `v0.0.86` -> `v0.0.87` (`#version-inline` + tip card + header comment, `sw.js` cache `node-garden-v0.0.87`).
+
 ## [v0.0.86] - 2026-09-14 - Book-like reader overlay from node menu
 
 - `#node-menu` gains `#menu-read` (`📖 Read`, mono ghost like Trash, `gap:6px` in menu) beside `#node-menu-trash`; click calls `openReader(menuNodeId)` (menu hides first, no-op on missing/trashed id).

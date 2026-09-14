@@ -1,4 +1,4 @@
-<!-- button-app v0.0.86 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.87 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -677,6 +677,7 @@
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   }
   #menu-read,
+  #menu-share,
   #node-menu-trash {
     display: inline-flex;
     align-items: center;
@@ -694,8 +695,8 @@
     white-space: nowrap;
     transition: background 0.15s ease, transform 0.15s ease;
   }
-  #node-menu-trash:hover, #menu-read:hover { background: #eee; }
-  #node-menu-trash:active, #menu-read:active { transform: scale(0.94); }
+  #node-menu-trash:hover, #menu-read:hover, #menu-share:hover { background: #eee; }
+  #node-menu-trash:active, #menu-read:active, #menu-share:active { transform: scale(0.94); }
   /* Trash confirm cascade (v0.0.81): second-click "Trash all N?" danger state. */
   #node-menu-trash.danger { background: #c00; border-color: #c00; color: #fff; font-weight: 700; }
   #node-menu-trash.danger:hover { background: #a00; }
@@ -817,6 +818,124 @@
   #reader-prev:hover, #reader-next:hover { background: #eee; }
   #reader-prev:active, #reader-next:active { transform: scale(0.94); }
   #reader-count { font-size: 12px; opacity: 0.6; min-width: 48px; text-align: center; }
+  /* Shared read-only view (v0.0.87): same paper card as #reader, separate overlay. */
+  #shared {
+    position: fixed;
+    inset: 0;
+    z-index: 7000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0,0,0,0.45);
+  }
+  #shared-card {
+    width: min(92vw, 640px);
+    max-width: 640px;
+    max-height: 86vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+    font-family: var(--page-font);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    overflow: hidden;
+  }
+  #shared-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid currentColor;
+  }
+  #shared-title {
+    font-size: 13px;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #shared-close {
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: transparent;
+    color: #000;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    font-family: var(--page-font);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #shared-close:hover { background: #eee; }
+  #shared-close:active { transform: scale(0.94); }
+  #shared-page {
+    padding: 16px 18px;
+    overflow-y: auto;
+    line-height: 1.6;
+    font-family: var(--page-font);
+  }
+  #shared-page .shared-block { margin: 0 0 14px; }
+  #shared-page .shared-block:last-child { margin-bottom: 0; }
+  #shared-page h2, #shared-page h3, #shared-page h4,
+  #shared-page h5, #shared-page h6 {
+    line-height: 1.3;
+    margin: 0 0 4px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  #shared-page h2 { font-size: 1.25rem; }
+  #shared-page h3 { font-size: 1.12rem; }
+  #shared-page h4 { font-size: 1.02rem; }
+  #shared-page h5 { font-size: 0.95rem; }
+  #shared-page h6 { font-size: 0.9rem; }
+  #shared-page p {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.85;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  #shared-page .shared-empty { opacity: 0.6; font-size: 0.95rem; }
+  #shared-foot {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid currentColor;
+  }
+  #shared-prev, #shared-next {
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: transparent;
+    color: #000;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    font-family: var(--page-font);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #shared-prev:hover, #shared-next:hover { background: #eee; }
+  #shared-prev:active, #shared-next:active { transform: scale(0.94); }
+  #shared-count { font-size: 12px; opacity: 0.6; min-width: 48px; text-align: center; }
   /* Solid shake (v0.0.80): reuse inputShake translate so structural refuse
      on a solid leaf is visible (input is hidden in solid state). */
   .solid-text.shake { animation: inputShake 0.3s ease; }
@@ -986,8 +1105,9 @@
     #node-menu { background: #000; border-color: #fff; box-shadow: 0 8px 24px rgba(255,255,255,0.15); }
     #node-menu-trash { background: transparent; color: #fff; border-color: #fff; }
     #menu-read { background: transparent; color: #fff; border-color: #fff; }
-    #node-menu-trash:hover, #menu-read:hover { background: #222; }
-    #node-menu-trash:active, #menu-read:active { transform: scale(0.94); }
+    #menu-share { background: transparent; color: #fff; border-color: #fff; }
+    #node-menu-trash:hover, #menu-read:hover, #menu-share:hover { background: #222; }
+    #node-menu-trash:active, #menu-read:active, #menu-share:active { transform: scale(0.94); }
     #node-menu-trash.danger { background: #c00; border-color: #c00; color: #fff; font-weight: 700; }
     #node-menu-trash.danger:hover { background: #a00; }
     #reader-card { background: #0a0a0a; color: #fff; border-color: #fff; box-shadow: 0 12px 40px rgba(255,255,255,0.15); }
@@ -995,6 +1115,11 @@
     #reader-close:hover { background: #222; }
     #reader-prev, #reader-next { background: transparent; color: #fff; border-color: #fff; }
     #reader-prev:hover, #reader-next:hover { background: #222; }
+    #shared-card { background: #0a0a0a; color: #fff; border-color: #fff; box-shadow: 0 12px 40px rgba(255,255,255,0.15); }
+    #shared-close { background: transparent; color: #fff; border-color: #fff; }
+    #shared-close:hover { background: #222; }
+    #shared-prev, #shared-next { background: transparent; color: #fff; border-color: #fff; }
+    #shared-prev:hover, #shared-next:hover { background: #222; }
     #status { color: #999; background: rgba(255,255,255,0.06); }
     #version-inline { color: #888; }
     #keys-tip-btn { background: transparent; color: #fff; border-color: #fff; }
@@ -1024,10 +1149,11 @@
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
     <p id="status">Waiting for writing...</p>
-    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.86</a></div>
+    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.87</a></div>
   </div>
   <div id="node-menu" role="menu" aria-label="Node menu" style="display:none">
     <button id="menu-read" type="button" role="menuitem" aria-label="Read node" title="Read node">&#x1F4D6;<span>Read</span></button>
+    <button id="menu-share" type="button" role="menuitem" aria-label="Share node" title="Share node">&#x1F517;<span>Share</span></button>
     <button id="node-menu-trash" type="button" role="menuitem" aria-label="Trash node" title="Trash node">&#x1F5D1;<span>Trash</span></button>
   </div>
   <div id="reader" role="dialog" aria-modal="true" aria-label="Reader" style="display:none">
@@ -1041,6 +1167,20 @@
         <button id="reader-prev" type="button" aria-label="Previous page" title="Previous page">&#8249; Prev</button>
         <div id="reader-count" aria-live="polite">1 / 1</div>
         <button id="reader-next" type="button" aria-label="Next page" title="Next page">Next &#8250;</button>
+      </div>
+    </div>
+  </div>
+  <div id="shared" role="dialog" aria-modal="true" aria-label="Shared node" style="display:none">
+    <div id="shared-card">
+      <div id="shared-head">
+        <div id="shared-title">Shared node</div>
+        <button id="shared-close" type="button" aria-label="Close shared view" title="Close shared view">&#10005;</button>
+      </div>
+      <div id="shared-page" aria-live="polite"></div>
+      <div id="shared-foot">
+        <button id="shared-prev" type="button" aria-label="Previous page" title="Previous page">&#8249; Prev</button>
+        <div id="shared-count" aria-live="polite">1 / 1</div>
+        <button id="shared-next" type="button" aria-label="Next page" title="Next page">Next &#8250;</button>
       </div>
     </div>
   </div>
@@ -1065,7 +1205,7 @@
     <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
     <div class="tip-divider" aria-hidden="true"></div>
     <div class="tip-credit">made by nd28 with opencode + muse spark 1.3</div>
-    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.86</a></div>
+    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.87</a></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');
@@ -2625,6 +2765,7 @@
     // via pointer events; normal click-to-edit/arrows untouched (hold cancels
     // on move/up, post-hold click suppressed via capture). Dismiss + disarm
     // on outside click/Esc/timeout/scroll/resize/render. No drag exists.
+    // v0.0.87: menu also has Share (menu-share -> shareNode, URL hash link).
     let menuNodeId = null;
     let holdTimer = null;
     let holdStartX = 0;
@@ -2891,6 +3032,13 @@
         if (!nid) { hideNodeMenu(); return; }
         try { openReader(nid); } catch (_) {}
       });
+      const shareBtn = document.getElementById('menu-share');
+      if (shareBtn) shareBtn.addEventListener('click', (e) => {
+        try { e.stopPropagation(); } catch (_) {}
+        const nid = menuNodeId;
+        if (!nid) { hideNodeMenu(); return; }
+        try { shareNode(nid); } catch (_) {}
+      });
       const btn = document.getElementById('node-menu-trash');
       if (!btn) return;
       btn.addEventListener('click', (e) => {
@@ -3064,6 +3212,278 @@
       }, true);
     })();
 
+    // Share via URL hash (v0.0.87): no backend, static-Pages safe. Serializes
+    // the subtree rooted at a node to compact JSON {v:1, root:{word,body,
+    // children:[...]}} (trimmed titles+bodies, trashed skipped entirely,
+    // empty waiting promoted: their children attach to the parent level),
+    // unicode-safe base64 (no lib), full URL = origin+path+#s=<b64>.
+    // Copy via clipboard, status "Link copied". Length guard ~4000 chars
+    // -> "Too big to share". Own graph untouched (never imported).
+    // Shared read-only overlay (#shared, same paper styles as #reader,
+    // 4 blocks/page): opened on load + hashchange when #s= present
+    // (invalid -> "Invalid share link" + ignore). Close clears the hash
+    // (history, no reload) + returns to own roots (navigateTo(null)).
+    const SHARE_VERSION = 1;
+    const SHARE_MAX_URL = 4000;
+    const SHARED_PER_PAGE = 4;
+    let sharedBlocks = [];
+    let sharedPageIdx = 0;
+    let sharedRoot = null;
+    function shareBuildTree(nid) {
+      const root = nid ? graph.getNode(nid) : null;
+      if (!root || root.trashed) return null;
+      const seen = new Set([nid]);
+      function buildKids(id) {
+        const out = [];
+        const kids = graph.getChildren(id);
+        for (const k of kids) {
+          if (!k || seen.has(k.id)) continue;
+          seen.add(k.id);
+          const kn = graph.getNode(k.id);
+          if (!kn || kn.trashed) continue;
+          const word = (kn.word || '').trim();
+          const body = (kn.body || '').trim();
+          const grandchildren = buildKids(k.id);
+          if (!word && !body) {
+            for (const g of grandchildren) out.push(g);
+            continue;
+          }
+          out.push({ word, body, children: grandchildren });
+        }
+        return out;
+      }
+      return {
+        word: (root.word || '').trim(),
+        body: (root.body || '').trim(),
+        children: buildKids(nid),
+      };
+    }
+    function shareEncodeJson(json) {
+      const s = String(json);
+      const bin = encodeURIComponent(s).replace(/%([0-9A-F]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+      return btoa(bin);
+    }
+    function shareDecodeJson(b64) {
+      const bin = atob(String(b64));
+      const pct = Array.prototype.map.call(bin, (c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('');
+      return decodeURIComponent(pct);
+    }
+    function shareEncode(obj) {
+      return shareEncodeJson(JSON.stringify(obj));
+    }
+    function shareDecode(b64) {
+      const obj = JSON.parse(shareDecodeJson(b64));
+      if (!obj || obj.v !== SHARE_VERSION || !obj.root || typeof obj.root !== 'object') throw new Error('bad share');
+      function clean(node) {
+        if (!node || typeof node !== 'object') throw new Error('bad share');
+        const kids = Array.isArray(node.children) ? node.children : [];
+        return {
+          word: String(node.word || ''),
+          body: String(node.body || ''),
+          children: kids.map(clean),
+        };
+      }
+      return { v: SHARE_VERSION, root: clean(obj.root) };
+    }
+    function shareBuildUrl(b64) {
+      let base = '';
+      try {
+        if (location.origin && location.origin !== 'null') base = location.origin + location.pathname;
+        else base = location.href.split('#')[0];
+      } catch (_) {
+        try { base = location.href.split('#')[0]; } catch (_) { base = ''; }
+      }
+      return base + '#s=' + b64;
+    }
+    function fallbackCopy(t) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = t;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return !!ok;
+      } catch (_) { return false; }
+    }
+    function copyText(t) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(t).then(() => true, () => fallbackCopy(t));
+        }
+      } catch (_) {}
+      return Promise.resolve(fallbackCopy(t));
+    }
+    function shareNode(nid) {
+      const tree = shareBuildTree(nid);
+      if (!tree) { try { status.textContent = 'Nothing to share'; } catch (_) {} return; }
+      let b64 = '';
+      try { b64 = shareEncode({ v: SHARE_VERSION, root: tree }); }
+      catch (_) { try { status.textContent = 'Nothing to share'; } catch (_) {} return; }
+      const url = shareBuildUrl(b64);
+      if (url.length > SHARE_MAX_URL) { try { status.textContent = 'Too big to share'; } catch (_) {} return; }
+      try {
+        copyText(url).then((ok) => { try { status.textContent = ok ? 'Link copied' : 'Copy failed'; } catch (_) {} });
+      } catch (_) { try { status.textContent = 'Copy failed'; } catch (_) {} }
+    }
+    function flattenShared(root) {
+      const out = [];
+      function walk(node, depth) {
+        if (!node || typeof node !== 'object') return;
+        const title = String(node.word || '').trim();
+        const body = String(node.body || '').trim();
+        const kids = Array.isArray(node.children) ? node.children : [];
+        if (title || body) {
+          out.push({ title, body, depth });
+          for (const k of kids) walk(k, depth + 1);
+        } else {
+          for (const k of kids) walk(k, depth);
+        }
+      }
+      walk(root, 0);
+      return out;
+    }
+    function sharedPageCount() {
+      return Math.max(1, Math.ceil(sharedBlocks.length / SHARED_PER_PAGE));
+    }
+    function isSharedOpen() {
+      try {
+        const r = document.getElementById('shared');
+        return !!(sharedRoot && r && r.style.display !== 'none');
+      } catch (_) { return false; }
+    }
+    function renderSharedPage() {
+      try {
+        const pageEl = document.getElementById('shared-page');
+        const countEl = document.getElementById('shared-count');
+        const titleEl = document.getElementById('shared-title');
+        const prevBtn = document.getElementById('shared-prev');
+        const nextBtn = document.getElementById('shared-next');
+        const total = sharedPageCount();
+        if (sharedPageIdx < 0) sharedPageIdx = 0;
+        if (sharedPageIdx > total - 1) sharedPageIdx = total - 1;
+        const rw = sharedRoot ? String(sharedRoot.word || '').trim() : '';
+        if (titleEl) titleEl.textContent = rw ? 'Shared node \u2014 ' + rw : 'Shared node';
+        if (pageEl) {
+          pageEl.innerHTML = '';
+          if (sharedBlocks.length === 0) {
+            const d = document.createElement('div');
+            d.className = 'shared-empty';
+            d.textContent = 'Nothing shared yet.';
+            pageEl.appendChild(d);
+          } else {
+            const start = sharedPageIdx * SHARED_PER_PAGE;
+            const slice = sharedBlocks.slice(start, start + SHARED_PER_PAGE);
+            for (const b of slice) {
+              const wrap = document.createElement('div');
+              wrap.className = 'shared-block';
+              try { wrap.style.marginLeft = Math.min(b.depth, 5) * 14 + 'px'; } catch (_) {}
+              const tag = 'h' + Math.min(2 + Math.min(b.depth, 4), 6);
+              if (b.title) {
+                const h = document.createElement(tag);
+                h.textContent = b.title;
+                wrap.appendChild(h);
+              }
+              if (b.body) {
+                const p = document.createElement('p');
+                p.textContent = b.body;
+                wrap.appendChild(p);
+              }
+              pageEl.appendChild(wrap);
+            }
+          }
+          try { pageEl.scrollTop = 0; } catch (_) {}
+        }
+        if (countEl) countEl.textContent = (sharedPageIdx + 1) + ' / ' + total;
+        if (prevBtn) prevBtn.disabled = sharedPageIdx <= 0;
+        if (nextBtn) nextBtn.disabled = sharedPageIdx >= total - 1;
+      } catch (_) {}
+    }
+    function openShared(obj) {
+      if (!obj || !obj.root) return false;
+      sharedRoot = obj.root;
+      sharedBlocks = flattenShared(obj.root);
+      sharedPageIdx = 0;
+      renderSharedPage();
+      try {
+        const r = document.getElementById('shared');
+        if (r) r.style.display = '';
+      } catch (_) {}
+      try {
+        const c = document.getElementById('shared-close');
+        if (c) c.focus();
+      } catch (_) {}
+      return true;
+    }
+    function closeShared() {
+      try {
+        const r = document.getElementById('shared');
+        if (r) r.style.display = 'none';
+      } catch (_) {}
+      sharedRoot = null;
+      try {
+        history.replaceState(null, '', location.pathname + location.search);
+      } catch (_) {
+        try { location.hash = ''; } catch (_) {}
+      }
+      try { navigateTo(null); } catch (_) {}
+    }
+    function stepShared(dir) {
+      const total = sharedPageCount();
+      const next = sharedPageIdx + dir;
+      if (next < 0 || next > total - 1) return;
+      sharedPageIdx = next;
+      renderSharedPage();
+    }
+    // Returns true when a shared view opened, 'invalid' when #s= present
+    // but unparseable (status set, otherwise ignored), false when no hash.
+    function checkShareHash() {
+      let h = '';
+      try { h = location.hash || ''; } catch (_) { h = ''; }
+      if (h.slice(0, 3) !== '#s=') return false;
+      const b64 = h.slice(3);
+      if (!b64) return false;
+      let obj = null;
+      try { obj = shareDecode(b64); }
+      catch (_) { obj = null; }
+      if (!obj) { try { status.textContent = 'Invalid share link'; } catch (_) {} return 'invalid'; }
+      try {
+        if (openShared(obj)) return true;
+      } catch (_) {}
+      try { status.textContent = 'Invalid share link'; } catch (_) {}
+      return 'invalid';
+    }
+    (function wireShared() {
+      const r = document.getElementById('shared');
+      const closeBtn = document.getElementById('shared-close');
+      const prevBtn = document.getElementById('shared-prev');
+      const nextBtn = document.getElementById('shared-next');
+      if (closeBtn) closeBtn.addEventListener('click', (e) => { try { e.stopPropagation(); } catch (_) {} closeShared(); });
+      if (prevBtn) prevBtn.addEventListener('click', (e) => { try { e.stopPropagation(); } catch (_) {} stepShared(-1); });
+      if (nextBtn) nextBtn.addEventListener('click', (e) => { try { e.stopPropagation(); } catch (_) {} stepShared(1); });
+      if (r) r.addEventListener('click', (e) => { try { if (e.target === r) closeShared(); } catch (_) {} });
+      window.addEventListener('keydown', (e) => {
+        if (!isSharedOpen()) return;
+        if (e.key === 'Escape') { e.preventDefault(); try { e.stopPropagation(); } catch (_) {} closeShared(); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); try { e.stopPropagation(); } catch (_) {} stepShared(-1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); try { e.stopPropagation(); } catch (_) {} stepShared(1); }
+      }, true);
+      window.addEventListener('hashchange', () => {
+        try {
+          const h = location.hash || '';
+          if (h.slice(0, 3) === '#s=') { checkShareHash(); return; }
+          if (isSharedOpen()) {
+            const rr = document.getElementById('shared');
+            if (rr) rr.style.display = 'none';
+            sharedRoot = null;
+          }
+        } catch (_) {}
+      });
+    })();
+
     // Keyboard up/down navigation (v0.0.30): moves focus across nodes in the
     // current level, turning pages as needed. Scoped to currentParentId via
     // currentList()/computePages(). Typing is never hijacked: arrows inside a
@@ -3162,6 +3582,7 @@
     window.addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
       try { if (typeof isReaderOpen === 'function' && isReaderOpen()) return; } catch (_) {}
+      try { if (typeof isSharedOpen === 'function' && isSharedOpen()) return; } catch (_) {}
       if (e.altKey || e.metaKey || e.ctrlKey) return;
       const t = e.target;
       if (t && t.tagName === 'TEXTAREA') {
@@ -3194,6 +3615,7 @@
     window.addEventListener('keydown', (e) => {
       if (e.key !== '+' && e.key !== '=') return;
       try { if (typeof isReaderOpen === 'function' && isReaderOpen()) return; } catch (_) {}
+      try { if (typeof isSharedOpen === 'function' && isSharedOpen()) return; } catch (_) {}
       if (e.altKey || e.metaKey || e.ctrlKey) return;
       const t = e.target;
       if (t && t.tagName === 'TEXTAREA') {
@@ -3228,9 +3650,14 @@
     clampPage();
     render('first-empty-visible');
     // Autofocus first node on load (v0.0.48): waiting input, else first solid.
+    // v0.0.87: check #s= share hash first — shared view opens on top of own
+    // roots (untouched); invalid keeps "Invalid share link" (no overwrite).
     requestAnimationFrame(() => {
+      let shr = false;
+      try { shr = checkShareHash(); } catch (_) {}
+      if (shr === true) return;
       focusFirstVisible();
-      updateStatus();
+      if (shr !== 'invalid') updateStatus();
     });
   </script>
   <script>
@@ -3329,10 +3756,15 @@
         });
         push(document.getElementById('node-menu-trash'), 'node-menu-trash');
         push(document.getElementById('menu-read'), 'menu-read');
+        push(document.getElementById('menu-share'), 'menu-share');
         push(document.getElementById('reader'), 'reader');
         push(document.getElementById('reader-close'), 'reader-close');
         push(document.getElementById('reader-prev'), 'reader-prev');
         push(document.getElementById('reader-next'), 'reader-next');
+        push(document.getElementById('shared'), 'shared');
+        push(document.getElementById('shared-close'), 'shared-close');
+        push(document.getElementById('shared-prev'), 'shared-prev');
+        push(document.getElementById('shared-next'), 'shared-next');
         return out;
       }
       function showPeek() {
