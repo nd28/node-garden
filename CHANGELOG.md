@@ -3,6 +3,13 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.84] - 2026-09-14 - Back/Left auto-focuses the node just exited
+
+- `navigateTo(parentId, opts)` gains `opts.focusId` (exited child id): after navigating to the parent level it finds the id's index in the new `currentList()`, pages to it (`pageForPos` + `clampPage`), `render(pos)` (empty exits focus their input synchronously), then `rAF` `focusById(focusId, pos)` focuses its solid (`focusableForNodeEl`, `preventScroll`) or input if empty, paging again if a blur-prune shifted indices; unknown id falls back to `focusFirstVisible`.
+- `goBack()` captures `previous currentParentId` as `exitedId` and calls `navigateTo(grandparent, { focusId: exitedId })`; `ArrowLeft` (same as `‹` button) delegates to `goBack()` so it parent-focuses too.
+- `Home` (`navigateTo(null)`, no `focusId`) keeps `first-empty-visible`; crumb jumps unchanged.
+- `v0.0.83` -> `v0.0.84` (`#version-inline` + tip card + header comment).
+
 ## [v0.0.83] - 2026-09-14 - Enter-save auto-focuses new solid
 
 - `showSolid(nodeEl, idx, word, opts)` / `showSolidNow(..., opts)` gain `focusSolid` flag: only the Enter keydown path passes `{ focusSolid: true }` (new-node add flow + existing edit-save); blur path and initial-load `animate:false` render never steal focus.

@@ -1,4 +1,4 @@
-<!-- button-app v0.0.83 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.84 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -891,7 +891,7 @@
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
     <p id="status">Waiting for writing...</p>
-    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.83</a></div>
+    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.84</a></div>
   </div>
   <div id="node-menu" role="menu" aria-label="Node menu" style="display:none">
     <button id="node-menu-trash" type="button" role="menuitem" aria-label="Trash node" title="Trash node">&#x1F5D1;<span>Trash</span></button>
@@ -917,7 +917,7 @@
     <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
     <div class="tip-divider" aria-hidden="true"></div>
     <div class="tip-credit">made by nd28 with opencode + muse spark 1.3</div>
-    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.83</a></div>
+    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.84</a></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');
@@ -1911,7 +1911,10 @@
     }
 
     // Drill navigation: currentParentId=null shows roots.
-    // opts: {page?: number, focus?: string|number, animate?: boolean (no-op, kept for callers)}.
+    // opts: {page?: number, focus?: string|number, focusId?: string, animate?: boolean (no-op, kept for callers)}.
+    // v0.0.84: focusId = exited child id for Back/Left — after navigating to the
+    // parent level, page to it + focus its solid (or input if empty). Home keeps
+    // first-empty-visible (no focusId).
     function navigateTo(parentId, opts) {
       const pid = parentId || null;
       if (pid && !graph.getNode(pid)) return;
@@ -1923,17 +1926,46 @@
       ensureLevelHasNode(currentParentId);
       saveGraph();
       clampPage();
+      let backPos = -1;
+      if (o.focusId) {
+        try {
+          const lst = currentList();
+          const pos = lst.findIndex((n) => n.id === o.focusId);
+          if (pos !== -1) {
+            backPos = pos;
+            page = pageForPos(computePages(lst.length), pos);
+          }
+        } catch (_) {}
+        clampPage();
+      }
       savePlace();
-      render(o.focus !== undefined ? o.focus : 'first-empty-visible');
+      render(backPos !== -1 ? backPos : (o.focus !== undefined ? o.focus : 'first-empty-visible'));
       savePlace();
       requestAnimationFrame(() => {
+        if (o.focusId) {
+          let done = false;
+          try {
+            if (typeof focusById === 'function') {
+              const lst2 = currentList();
+              const p2 = lst2.findIndex((n) => n.id === o.focusId);
+              if (p2 !== -1) done = focusById(o.focusId, p2);
+            }
+          } catch (_) {}
+          if (!done) { try { focusFirstVisible(); } catch (_) {} }
+          try { updateStatus(); } catch (_) {}
+          return;
+        }
         if (o.focus === undefined || o.focus === 'first-empty-visible') focusFirstVisible();
         updateStatus();
       });
     }
+    // v0.0.84: Back auto-focuses the node just exited (previous
+    // currentParentId) in the upper level list; Home (navigateTo(null))
+    // keeps first-empty-visible.
     function goBack() {
       const p = getParentNode();
-      navigateTo(p ? (p.parentId || null) : null);
+      const exitedId = currentParentId;
+      navigateTo(p ? (p.parentId || null) : null, exitedId ? { focusId: exitedId } : undefined);
     }
 
     function updateNav() {
@@ -2810,8 +2842,9 @@
       const targetId = list[targetPos] ? list[targetPos].id : null;
       focusById(targetId, targetPos);
     }
-    // Keyboard Left back (v0.0.35): ArrowLeft inside drills up via goBack(),
-    // same as bottom ‹ back button. At root does nothing. Same typing guard
+    // Keyboard Left back (v0.0.35, v0.0.84 parent-focus): ArrowLeft inside drills up via goBack(),
+    // same as bottom ‹ back button (goBack forwards the exited id as focusId
+    // so the parent level focuses the node just exited). At root does nothing. Same typing guard
     // as up/down/right: non-empty inputs keep caret behavior.
     // Keyboard Right drill (v0.0.34): ArrowRight on a focused node drills
     // inside via navigateTo(id), same as clicking ›. Only solids with a word
@@ -2850,7 +2883,7 @@
       }
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (currentParentId != null) goBack();
+        if (currentParentId != null) goBack(); // v0.0.84: parent-focus via focusId
         return;
       }
       if (e.key === 'ArrowRight') {
