@@ -3,6 +3,12 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.83] - 2026-09-14 - Enter-save auto-focuses new solid
+
+- `showSolid(nodeEl, idx, word, opts)` / `showSolidNow(..., opts)` gain `focusSolid` flag: only the Enter keydown path passes `{ focusSolid: true }` (new-node add flow + existing edit-save); blur path and initial-load `animate:false` render never steal focus.
+- On flag, `showSolidNow` focuses `.solid-text` (`tabindex`, `preventScroll`, no edit reopen) after `updateNav`/`updateStatus` so keyboard nav continues + focus corners show; async `fade-blur-out` path forwards the flag through the `250ms` timeout.
+- `v0.0.82` -> `v0.0.83` (`#version-inline` + tip card + header comment).
+
 ## [v0.0.82] - 2026-09-14 - remove thick fake caret, restore native caret
 
 - Removes thick `4px` `#fake-caret` block: deletes `#fake-caret` div + `#fake-caret`/`.on`/`caretBlink` CSS (light + dark `#fff` override) + JS (`fakeCaret`, `caretMeas`, `caretTextWidth`, `caretPosWrapped`, `updateCaret`, `hideCaretDelayed`, `caretMirror` + all wirings: `keyup`/`click`/`scroll` caret-only listeners, `input`/`focus`/`blur`/`resize`/`render`/`focusFirstVisible`/`focusById`/`showInput`/`showSolidNow` caret calls, font/spacing/leading/weight/size `updateCaret` re-runs, shake/reject `updateCaret` refreshes).

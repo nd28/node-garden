@@ -1,4 +1,4 @@
-<!-- button-app v0.0.82 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.83 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -891,7 +891,7 @@
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
     <p id="status">Waiting for writing...</p>
-    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.82</a></div>
+    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.83</a></div>
   </div>
   <div id="node-menu" role="menu" aria-label="Node menu" style="display:none">
     <button id="node-menu-trash" type="button" role="menuitem" aria-label="Trash node" title="Trash node">&#x1F5D1;<span>Trash</span></button>
@@ -917,7 +917,7 @@
     <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
     <div class="tip-divider" aria-hidden="true"></div>
     <div class="tip-credit">made by nd28 with opencode + muse spark 1.3</div>
-    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.82</a></div>
+    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.83</a></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');
@@ -2039,8 +2039,9 @@
       updateStatus();
     }
 
-    function showSolid(nodeEl, idx, word) {
+    function showSolid(nodeEl, idx, word, opts) {
       if (nodeEl._solidifying) return;
+      const focusSolid = !!(opts && opts.focusSolid);
       const input = nodeEl.querySelector('.root-input');
       const inputVisible = input.classList.contains('show') || input.classList.contains('edit-pop');
       if (inputVisible) {
@@ -2052,15 +2053,16 @@
         setTimeout(() => {
           input.classList.remove('fade-blur-out');
           nodeEl._solidifying = false;
-          showSolidNow(nodeEl, idx, word);
+          showSolidNow(nodeEl, idx, word, focusSolid ? { focusSolid: true } : undefined);
         }, 250);
       } else {
-        showSolidNow(nodeEl, idx, word);
+        showSolidNow(nodeEl, idx, word, focusSolid ? { focusSolid: true } : undefined);
       }
     }
 
     function showSolidNow(nodeEl, idx, word, opts) {
       const animate = !opts || opts.animate !== false;
+      const focusSolid = !!(opts && opts.focusSolid);
       setWordAt(idx, word);
       saveGraph();
       const input = nodeEl.querySelector('.root-input');
@@ -2116,6 +2118,13 @@
       }
       updateNav();
       updateStatus();
+      // v0.0.83: Enter-save focuses the new solid (tabindex, no edit reopen)
+      // so keyboard nav continues + corners show. Only when focusSolid flag
+      // is set (Enter path); initial load (animate:false) never steals.
+      if (focusSolid) {
+        try { solid.focus({ preventScroll: true }); } catch (_) { try { solid.focus(); } catch (_) {} }
+        try { updateStatus(); } catch (_) {}
+      }
     }
 
     function createNodeEl(idx) {
@@ -2192,7 +2201,7 @@
             else rejectTooLong(input);
             return;
           }
-          showSolid(nodeEl, idx, toTitleCase(raw.trim()));
+          showSolid(nodeEl, idx, toTitleCase(raw.trim()), { focusSolid: true });
         }
       });
       input.addEventListener('blur', () => {
