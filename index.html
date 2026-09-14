@@ -1,4 +1,4 @@
-<!-- button-app v0.0.78 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.79 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -865,7 +865,7 @@
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
     <p id="status">Waiting for writing...</p>
-    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.78</a></div>
+    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.79</a></div>
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <button id="style-toggle" aria-label="Toggle text style knobs" title="Text style options" aria-expanded="false" aria-controls="style-knobs">T</button>
@@ -889,7 +889,7 @@
     <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
     <div class="tip-divider" aria-hidden="true"></div>
     <div class="tip-credit">made by nd28 with opencode + muse spark 1.3</div>
-    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.78</a></div>
+    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.79</a></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');
@@ -1262,12 +1262,15 @@
       return 'n-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36);
     }
 
-    // Tree Graph store (v0.0.20, v2 JSON; v0.0.59 body): each node
-    // {id, word, body, parentId (null = root), createdAt, order}.
-    // order: [id] global insertion order; sibling order derives from
-    // filtering order by parentId. Edges are parent->child only.
-    // Persisted as {version: 2, nodes, edges, order}; v1 flat files
-    // (no parentId, linear chain edges) migrate to parentId=null.
+    // Tree Graph store (v0.0.20, v2 JSON; v0.0.59 body; v0.0.79 trash): each node
+    // {id, word, body, parentId (null = root), createdAt, order,
+    //  trashed (false = active), trashedAt (ms, 0 = never)}.
+    // Trash design: clearing a childless leaf moves it to trash
+    // (trashed=true, keeps id/word(parentId+last word+body) for restore)
+    // instead of destroy; trashed nodes are excluded from
+    // currentList/count/paging/render, persisted in root-graph-json,
+    // old saves without trash fields migrate to trashed=false.
+    // Structural empty parents (have children) are never trashed.
     const GRAPH_VERSION = 2;
     class Graph {
       constructor() {
@@ -1275,13 +1278,22 @@
         this.adj = new Map();
         this.order = [];
       }
-      get size() { return this.order.length; }
+      get size() {
+        let n = 0;
+        for (const node of this.nodes.values()) if (!node.trashed) n++;
+        return n;
+      }
+      get trashSize() {
+        let n = 0;
+        for (const node of this.nodes.values()) if (node.trashed) n++;
+        return n;
+      }
       addNode(word, parentId) {
         const w = word || '';
         const pid = (parentId !== undefined && parentId !== null && this.nodes.has(parentId))
           ? parentId : null;
         const id = newNodeId();
-        const node = { id, word: w, body: '', parentId: pid, createdAt: Date.now(), order: this.order.length };
+        const node = { id, word: w, body: '', parentId: pid, createdAt: Date.now(), order: this.order.length, trashed: false, trashedAt: 0 };
         this.nodes.set(id, node);
         this.adj.set(id, new Set());
         if (pid) this.addEdge(pid, id);
@@ -1327,21 +1339,57 @@
         return true;
       }
       getNode(id) { return this.nodes.get(id) || null; }
+      isTrashed(id) {
+        const n = id ? this.nodes.get(id) : null;
+        return !!(n && n.trashed);
+      }
+      // Move a childless leaf to trash (v0.0.79): keeps id/word/body/
+      // parentId for restore, sets trashed+trashedAt. Structural parents
+      // (have active children) refuse. Never cascades (trash is leaf-only).
+      trashNode(id) {
+        const n = id ? this.nodes.get(id) : null;
+        if (!n || n.trashed) return false;
+        if (this.getChildren(id).length !== 0) return false;
+        n.trashed = true;
+        n.trashedAt = Date.now();
+        return true;
+      }
+      // Future restore (no UI yet): untrash, keep parentId when it still
+      // exists else re-root to null. Returns false when missing/dangling.
+      restoreNode(id) {
+        const n = id ? this.nodes.get(id) : null;
+        if (!n || !n.trashed) return false;
+        n.trashed = false;
+        n.trashedAt = 0;
+        if (n.parentId && !this.nodes.has(n.parentId)) n.parentId = null;
+        if (n.parentId) this.addEdge(n.parentId, n.id);
+        return true;
+      }
+      getTrash() {
+        const out = [];
+        for (const id of this.order) {
+          const n = this.nodes.get(id);
+          if (n && n.trashed) out.push(n);
+        }
+        out.sort((a, b) => (a.trashedAt || 0) - (b.trashedAt || 0));
+        return out;
+      }
       getOrderedNodes() {
         const out = [];
         for (const id of this.order) {
           const n = this.nodes.get(id);
-          if (n) out.push(n);
+          if (n && !n.trashed) out.push(n);
         }
         return out;
       }
-      // Siblings in stable insertion order for one parent level.
+      // Siblings in stable insertion order for one parent level (active only;
+      // trashed excluded from currentList/count/paging).
       getChildren(parentId) {
         const pid = parentId || null;
         const out = [];
         for (const id of this.order) {
           const n = this.nodes.get(id);
-          if (n && (n.parentId || null) === pid) out.push(n);
+          if (n && !n.trashed && (n.parentId || null) === pid) out.push(n);
         }
         return out;
       }
@@ -1398,6 +1446,8 @@
             parentId: rawPid,
             createdAt: Number(n.createdAt) || Date.now(),
             order: g.order.length,
+            trashed: n.trashed === true,
+            trashedAt: Number(n.trashedAt) || 0,
           });
           g.adj.set(id, new Set());
           g.order.push(id);
@@ -1483,8 +1533,12 @@
       } catch (_) {}
       return { pid, pg };
     }
-    // Prune empty leaves (v0.0.26): any node with trim=='' AND zero children
-    // auto-removes. Empty nodes WITH children are structural parents — kept.
+    // Prune empty leaves (v0.0.26; v0.0.79 trash excl): any ACTIVE node with
+    // trim=='' AND zero active children is legacy-cleaned via destroy
+    // (never-typed waiting dup, no word to keep). User clears go via
+    // autoRemoveEmptyLeaf/pruneEmptyNodeById -> trash (keeps last word).
+    // Trashed nodes are already excluded via getOrderedNodes/getChildren.
+    // Empty nodes WITH children are structural parents — kept.
     // Per level steady state: >=1 non-empty -> zero empties (no waiting until
     // + pressed); zero nodes -> one empty waiting (so typing stays possible).
     // opts.preserveCurrent: skip the current view level (transient + typing /
@@ -1546,12 +1600,14 @@
       }
       return false;
     }
-    // Remove a single empty leaf by id (v0.0.26: trim=='' AND zero children).
-    // Empty WITH children is structural — kept (needs a word, shake on commit).
-    // Keeps the sole node of an empty level so typing stays possible.
+    // Move a single empty leaf to trash by id (v0.0.26 remove, v0.0.79 trash:
+    // trim=='' AND zero active children -> trashed, keeps id/last word/
+    // parentId for restore). Empty WITH children is structural — kept
+    // (needs a word, shake on commit). Keeps the sole node of an empty
+    // level so typing stays possible.
     function pruneEmptyNodeById(id) {
       const n = id ? graph.getNode(id) : null;
-      if (!n) return false;
+      if (!n || n.trashed) return false;
       if ((n.word || '').trim()) return false;
       if (graph.getChildren(id).length !== 0) return false;
       const pid = n.parentId || null;
@@ -1563,32 +1619,40 @@
         return false;
       }
       const wasCurrentLevel = pid === (currentParentId || null);
-      graph.removeNode(id);
+      graph.trashNode(id);
+      try { console.log('[trash] moved to trash', { id, word: n.word, parentId: pid }); } catch (_) {}
       if (graph.childCount(pid) === 0 && (pid === null || pid === currentParentId)) {
         graph.addNode('', pid);
       }
       saveGraph();
       if (wasCurrentLevel) { clampPage(); render(); savePlace(); }
+      try { status.textContent = 'Moved to trash'; } catch (_) {}
       return true;
     }
-    // Empty-commit helper (v0.0.26): Enter/blur with trim=='' on a childless
-    // leaf auto-removes when siblings exist (no shake); sole waiting input or
-    // structural parent (has children) keeps validation shake. Returns true
-    // when the node was removed (caller must return early, no shake).
+    // Empty-commit helper (v0.0.26 remove, v0.0.79 trash): Enter/blur with
+    // trim=='' on a childless leaf moves it to trash when siblings exist
+    // (no shake; keeps id/last word/parentId for restore); sole waiting
+    // input or structural parent (has children) keeps validation shake.
+    // Solid cleared to empty (stored word non-empty, raw empty) also trashes
+    // (leaf-only; structural keeps shake) + ensures a waiting node remains.
+    // Returns true when the node was trashed (caller must return early).
     function autoRemoveEmptyLeaf(nid) {
       const nd = nid ? graph.getNode(nid) : null;
-      if (!nd) return false;
-      if ((nd.word || '').trim()) return false;
+      if (!nd || nd.trashed) return false;
       if (graph.getChildren(nid).length !== 0) return false;
       const pid = nd.parentId || null;
-      if (graph.childCount(pid) <= 1) return false;
+      const hadWord = !!((nd.word || '').trim());
+      if (!hadWord && graph.childCount(pid) <= 1) return false;
       const wasCurrent = pid === (currentParentId || null);
-      graph.removeNode(nid);
+      const keptWord = nd.word || '';
+      graph.trashNode(nid);
+      try { console.log('[trash] moved to trash', { id: nid, word: keptWord, parentId: pid }); } catch (_) {}
       if (graph.childCount(pid) === 0 && (pid === null || pid === currentParentId)) {
         graph.addNode('', pid);
       }
       saveGraph();
       if (wasCurrent) { clampPage(); render(); savePlace(); } else { updateStatus(); }
+      try { status.textContent = 'Moved to trash'; } catch (_) {}
       return true;
     }
     function loadGraph() {

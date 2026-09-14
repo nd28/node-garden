@@ -3,6 +3,13 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.79] - 2026-09-14 - cleared leaf moves to trash (not vanish)
+
+- `Graph` gains trash: node `{trashed:false, trashedAt:0}`; new `trashNode(id)` (leaf-only, keeps `id/word/body/parentId` for restore, no cascade), `getTrash()` (by `trashedAt`), `trashSize`, future `restoreNode(id)` (untrash, re-root when parent missing); `size` now counts active only; `getOrderedNodes`/`getChildren` exclude `trashed` so trash stays out of `currentList/count/paging/render`; `toJSON` persists trash, `fromJSON` restores `trashed/trashedAt` (old saves without fields migrate to active).
+- `autoRemoveEmptyLeaf(nid)`: was `removeNode` destroy (and refused stored-non-empty, so solid-cleared only shook); now leaf with zero active children -> `trashNode` + `console.log('[trash] moved to trash', {id, word, parentId})` + `status 'Moved to trash'`: solid cleared to empty (stored word kept as last word) trashes even when sole, empty waiting with siblings trashes (was silent destroy), sole waiting empty + structural parent (has children) still shake as before; after trash, `childCount(pid)===0` adds a waiting node so the level never strands.
+- `pruneEmptyNodeById(id)`: same `removeNode` -> `trashNode` + console + `Moved to trash` (dead code, no callers, kept consistent); bulk `pruneEmptiesToOne` still destroys never-typed empty dups (no word to keep, avoids trash noise), trashed already excluded.
+- No new UI (restore UI later); Alt peek untouched; `v0.0.78` -> `v0.0.79` (`#version-inline` + tip card + header comment).
+
 ## [v0.0.78] - 2026-09-14 - credit+version inside ? card, version below status
 
 - `#keys-tip-card` gains footer below shortcut list: divider (`.tip-divider`, full-width `1px` `currentColor` at `0.25`, `4px 0 2px` margin) + `.tip-credit` (`made by nd28 with opencode + muse spark 1.3`, dimmest silent tiny `10px` mono `opacity:0.3`) + `.tip-version` (`v0.0.78` link to `CHANGELOG.md`, `11px` dim `0.9`); shortcuts list untouched first.
