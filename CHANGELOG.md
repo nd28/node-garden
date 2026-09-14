@@ -3,6 +3,15 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.86] - 2026-09-14 - Book-like reader overlay from node menu
+
+- `#node-menu` gains `#menu-read` (`📖 Read`, mono ghost like Trash, `gap:6px` in menu) beside `#node-menu-trash`; click calls `openReader(menuNodeId)` (menu hides first, no-op on missing/trashed id).
+- New `#reader` overlay (`position:fixed inset:0`, `z-index:7000`, dim backdrop, paper `#reader-card` centered `min(92vw,640px)` / `max-height:86vh`, `#fff` light / `#0a0a0a` dark, page font, `12px` radius + shadow): head (`#reader-title` root word + `#reader-close ✕`), `#reader-page` book content (scrolls), foot (`#reader-prev ‹ Prev` + `#reader-count "N / M"` + `#reader-next Next ›`).
+- Flatten via `flattenReader(rootId)` DFS (self + children recursively, `graph.getChildren` order, cycle-safe `seen` set): skips trashed + empty waiting (both word+body blank, children still walked at same depth), title = title-case word, body natural; each block renders heading (`h2`-`h6` by depth, `14px` indent per depth capped) + paragraph.
+- Paginate `READER_PER_PAGE=4` blocks per page (`readerPageCount`, `renderReaderPage` resets scroll, disables prev/next at ends); close via X + `Esc` + backdrop click (`e.target===reader`); `←/→` steps pages (capture `stopPropagation` + arrow/`+` guards via `isReaderOpen` so list nav never fights reader).
+- Alt peek adds `menu-read`, `reader`, `reader-close`, `reader-prev`, `reader-next` badges (visible only when menu/overlay open).
+- `v0.0.85` -> `v0.0.86` (`#version-inline` + tip card + header comment, `sw.js` cache `node-garden-v0.0.86`).
+
 ## [v0.0.85] - 2026-09-14 - Installable PWA (manifest + service worker)
 
 - New `manifest.webmanifest`: `name node-garden`, `short_name Nodes`, `start_url .` + `scope .` (subpath-safe for GitHub Pages `/node-garden/`), `display standalone`, `background_color #ffffff` + `theme_color #000000`, icons `icon-192.png` + `icon-512.png` (`any maskable`, full-bleed black + white `+`) + `icon.svg` (`any` fallback).
