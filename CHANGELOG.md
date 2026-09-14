@@ -1,7 +1,15 @@
 # Changelog
 
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
-On each version bump: update `#version` footer in `index.html` + add entry here.
+On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
+
+## [v0.0.78] - 2026-09-14 - credit+version inside ? card, version below status
+
+- `#keys-tip-card` gains footer below shortcut list: divider (`.tip-divider`, full-width `1px` `currentColor` at `0.25`, `4px 0 2px` margin) + `.tip-credit` (`made by nd28 with opencode + muse spark 1.3`, dimmest silent tiny `10px` mono `opacity:0.3`) + `.tip-version` (`v0.0.78` link to `CHANGELOG.md`, `11px` dim `0.9`); shortcuts list untouched first.
+- New in-flow `#version-inline` directly below `#status` in `#stage` (centered `11px` dim `#888` link `v0.0.78` -> `CHANGELOG.md`, `opacity:0.9`); version now appears twice (card + below status), credit only in card.
+- `#foot-right` drops `#credit` + old `#version` (removed, no duplicate IDs) — `?` button alone fixed `bottom:8px right:12px`; stale `#version`/`#credit` CSS replaced by `#version-inline` + `.tip-credit`/`.tip-version` (light + dark).
+- Alt peek: `version` badge -> `version-inline` (same rect-follow/copy behavior).
+- Kept: all features, mono/darkmode, tip toggle/dismiss, peek badges.
 
 ## [v0.0.77] - 2026-09-13 - credit mentions opencode
 

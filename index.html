@@ -1,4 +1,4 @@
-<!-- button-app v0.0.77 — on version bump: update #version footer + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.78 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -674,13 +674,12 @@
   .open-btn:active { transform: scale(0.94); }
   /* Status (v0.0.76 in-flow below #level-nav): centered pill, margin-top 12px. Was fixed bottom 24px center. */
   #status { margin-top: 12px; color: #555; font-family: var(--page-font); font-size: 12px; letter-spacing: 0.02em; opacity: 0.6; background: rgba(0,0,0,0.04); padding: 4px 10px; border-radius: 999px; border: none; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
-  /* Foot-right cluster (v0.0.75): "?" + credit + version side by side, fixed bottom-right. */
+  /* Foot-right (v0.0.78): "?" button alone fixed bottom-right (credit moved into ? card, version in-flow below status + in card). */
   #foot-right { position: fixed; bottom: 8px; right: 12px; display: flex; flex-direction: row; align-items: center; gap: 8px; }
-  #version { font-size: 11px; color: #888; font-family: var(--page-font); }
-  #version a { color: inherit; text-decoration: none; font-family: inherit; }
-  #version a:hover { text-decoration: underline; }
-  /* Credit (v0.0.75): dimmest silent, tiny mono left of version in foot cluster. */
-  #credit { font-size: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; opacity: 0.3; pointer-events: none; user-select: none; white-space: nowrap; }
+  /* Version inline (v0.0.78 in-flow below #status in #stage): small dim centered link, same version as tip card. */
+  #version-inline { font-size: 11px; color: #888; font-family: var(--page-font); text-align: center; opacity: 0.9; }
+  #version-inline a { color: inherit; text-decoration: none; font-family: inherit; }
+  #version-inline a:hover { text-decoration: underline; }
   /* Keys tip (v0.0.71 button, v0.0.75 first item in #foot-right cluster):
      tiny ghost "?". Toggles floating mono pill card listing shortcuts. */
   #keys-tip-btn {
@@ -738,6 +737,12 @@
     opacity: 1;
   }
   #keys-tip-card .tip-def { opacity: 0.6; }
+  /* Tip footer (v0.0.78): divider + dim tiny mono credit + version link below shortcut list. */
+  #keys-tip-card .tip-divider { width: 100%; border-top: 1px solid currentColor; opacity: 0.25; margin: 4px 0 2px; }
+  #keys-tip-card .tip-credit { font-size: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; opacity: 0.3; pointer-events: none; user-select: none; white-space: nowrap; }
+  #keys-tip-card .tip-version { font-size: 11px; opacity: 0.9; }
+  #keys-tip-card .tip-version a { color: inherit; text-decoration: none; font-family: inherit; }
+  #keys-tip-card .tip-version a:hover { text-decoration: underline; }
   /* Alt-key ID peek badges: page-font pills, fixed near target. */
   .id-badge {
     position: fixed;
@@ -832,7 +837,7 @@
     #node-body::placeholder { color: #666; opacity: 0.35; }
     .open-btn:hover { background: #222; }
     #status { color: #999; background: rgba(255,255,255,0.06); }
-    #version { color: #888; }
+    #version-inline { color: #888; }
     #keys-tip-btn { background: transparent; color: #fff; border-color: #fff; }
     #keys-tip-btn:hover { background: #222; }
     #keys-tip-card { background: #000; color: #999; border-color: #fff; box-shadow: 0 8px 24px rgba(255,255,255,0.15); }
@@ -860,6 +865,7 @@
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
     <p id="status">Waiting for writing...</p>
+    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.78</a></div>
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <button id="style-toggle" aria-label="Toggle text style knobs" title="Text style options" aria-expanded="false" aria-controls="style-knobs">T</button>
@@ -872,8 +878,6 @@
   </div>
   <div id="foot-right">
     <button id="keys-tip-btn" aria-label="Show keyboard shortcuts" title="Keyboard shortcuts" aria-haspopup="true" aria-expanded="false">?</button>
-    <div id="credit">made by nd28 with opencode + muse spark 1.3</div>
-    <div id="version"><a href="CHANGELOG.md" title="Changelog">v0.0.77</a></div>
   </div>
   <div id="keys-tip-card" role="dialog" aria-label="Keyboard shortcuts" style="display:none">
     <div><span class="tip-key">Up</span> / <span class="tip-key">Down</span> <span class="tip-def">— move</span></div>
@@ -883,6 +887,9 @@
     <div><span class="tip-key">Enter</span> <span class="tip-def">— edit / save</span></div>
     <div><span class="tip-key">Alt</span> <span class="tip-def">(hold) — peek IDs</span></div>
     <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
+    <div class="tip-divider" aria-hidden="true"></div>
+    <div class="tip-credit">made by nd28 with opencode + muse spark 1.3</div>
+    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.78</a></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');
@@ -2632,7 +2639,7 @@
         push(document.getElementById('level-back-btn'), 'back-btn');
         push(document.getElementById('crumb-toggle-btn'), 'crumb-toggle-btn');
         push(document.getElementById('status'), 'status');
-        push(document.getElementById('version'), 'version');
+        push(document.getElementById('version-inline'), 'version-inline');
         push(document.getElementById('keys-tip-btn'), 'keys-tip-btn');
         document.querySelectorAll('#crumbs .crumb-btn').forEach((b) => {
           push(b, 'crumb-' + (b.dataset.crumb || '0'));
