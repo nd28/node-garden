@@ -3,6 +3,14 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.80] - 2026-09-14 - hold/right-click node menu with trash
+
+- New `#node-menu` floating menu anchored on `.root-node` (centered below node, flips above when tight, viewport-clamped, `z-index:6000`, mono pill `12px` radius + shadow like crumbs): single mono ghost `#node-menu-trash` button (bin icon `🗑` + `Trash` label, `12px` page font, hover `#eee`/`#222` dark, `aria-label`/`title` per node word).
+- Trigger: long-press/hold `~450ms` `pointerdown` without move (`>8px` cancels, `pointermove/up/cancel` wired, primary button only, `.open-btn` excluded) + right-click `contextmenu` (`preventDefault`, anchored on node rect not mouse); works for solid + input states, mouse + touch via pointer events; post-hold click-to-edit suppressed via capture (`suppressNodeClick` `600ms`, only inside `.root-node` so menu clicks pass); normal short click/arrows untouched, no drag exists.
+- Click trash -> `trashLeafFromMenu(id)` -> `trashNode(id)` leaf-only (keeps `id/word/body/parentId`, `console.log('[trash] ... via:menu')`, `Moved to trash`): works even with a word (word or empty leaf, sole word leaf trashes + adds waiting so level never strands); parent with active children refuses with shake (`shakeInput` for input, new `.solid-text.shake` reusing `inputShake` for solids) + `Can't trash: has children`; sole waiting empty keeps `Type a word first` shake (nothing to keep, no trash noise).
+- Dismiss on outside click (`document` click skips menu), `Esc`, `scroll` (capture) / `resize`, `render()` start (paging/navigate/trash re-render); `render` hides first so dangling `menuNodeId` never strands.
+- Alt peek adds `node-menu-trash` badge (visible only when menu open via `isVisibleEl`); `v0.0.79` -> `v0.0.80` (`#version-inline` + tip card + header comment).
+
 ## [v0.0.79] - 2026-09-14 - cleared leaf moves to trash (not vanish)
 
 - `Graph` gains trash: node `{trashed:false, trashedAt:0}`; new `trashNode(id)` (leaf-only, keeps `id/word/body/parentId` for restore, no cascade), `getTrash()` (by `trashedAt`), `trashSize`, future `restoreNode(id)` (untrash, re-root when parent missing); `size` now counts active only; `getOrderedNodes`/`getChildren` exclude `trashed` so trash stays out of `currentList/count/paging/render`; `toJSON` persists trash, `fromJSON` restores `trashed/trashedAt` (old saves without fields migrate to active).

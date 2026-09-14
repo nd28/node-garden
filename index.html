@@ -1,4 +1,4 @@
-<!-- button-app v0.0.79 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.80 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -672,6 +672,43 @@
   }
   .open-btn:hover { background: #eee; }
   .open-btn:active { transform: scale(0.94); }
+  /* Node context menu (v0.0.80): small floating menu anchored on .root-node.
+     Long-press (~450ms, no move) or right-click shows; trash button is mono
+     ghost (bin icon + Trash label). Overlays content, no layout shift. */
+  #node-menu {
+    position: fixed;
+    z-index: 6000;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid #000;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  #node-menu-trash {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: transparent;
+    color: #000;
+    font-family: var(--page-font);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  #node-menu-trash:hover { background: #eee; }
+  #node-menu-trash:active { transform: scale(0.94); }
+  /* Solid shake (v0.0.80): reuse inputShake translate so structural refuse
+     on a solid leaf is visible (input is hidden in solid state). */
+  .solid-text.shake { animation: inputShake 0.3s ease; }
   /* Status (v0.0.76 in-flow below #level-nav): centered pill, margin-top 12px. Was fixed bottom 24px center. */
   #status { margin-top: 12px; color: #555; font-family: var(--page-font); font-size: 12px; letter-spacing: 0.02em; opacity: 0.6; background: rgba(0,0,0,0.04); padding: 4px 10px; border-radius: 999px; border: none; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
   /* Foot-right (v0.0.78): "?" button alone fixed bottom-right (credit moved into ? card, version in-flow below status + in card). */
@@ -836,6 +873,9 @@
     #node-body { color: #fff; caret-color: #fff; opacity: 0.6; }
     #node-body::placeholder { color: #666; opacity: 0.35; }
     .open-btn:hover { background: #222; }
+    #node-menu { background: #000; border-color: #fff; box-shadow: 0 8px 24px rgba(255,255,255,0.15); }
+    #node-menu-trash { background: transparent; color: #fff; border-color: #fff; }
+    #node-menu-trash:hover { background: #222; }
     #status { color: #999; background: rgba(255,255,255,0.06); }
     #version-inline { color: #888; }
     #keys-tip-btn { background: transparent; color: #fff; border-color: #fff; }
@@ -865,9 +905,12 @@
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
     <p id="status">Waiting for writing...</p>
-    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.79</a></div>
+    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.80</a></div>
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
+  <div id="node-menu" role="menu" aria-label="Node menu" style="display:none">
+    <button id="node-menu-trash" type="button" role="menuitem" aria-label="Trash node" title="Trash node">&#x1F5D1;<span>Trash</span></button>
+  </div>
   <button id="style-toggle" aria-label="Toggle text style knobs" title="Text style options" aria-expanded="false" aria-controls="style-knobs">T</button>
   <div id="style-knobs">
   <button id="font-btn" aria-label="Try next node font" title="Try next node font">Aa</button>
@@ -889,7 +932,7 @@
     <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
     <div class="tip-divider" aria-hidden="true"></div>
     <div class="tip-credit">made by nd28 with opencode + muse spark 1.3</div>
-    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.79</a></div>
+    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.80</a></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');
@@ -2338,6 +2381,7 @@
     }
 
     function render(focusIdx) {
+      try { if (typeof hideNodeMenu === 'function') hideNodeMenu(); } catch (_) {}
       if (currentParentId && !graph.getNode(currentParentId)) currentParentId = null;
       pruneEmptiesToOne({ preserveCurrent: true });
       ensureLevelHasNode(currentParentId);
@@ -2451,6 +2495,222 @@
       const pages = computePages(currentSize());
       if (page < pages.length - 1) { page++; render(); savePlace(); }
     });
+
+    // Node context menu (v0.0.80): long-press/hold (~450ms pointerdown without
+    // move) or right-click on .root-node shows a small floating #node-menu
+    // anchored on the node with a mono ghost trash button (bin icon + Trash).
+    // Click trash -> trashLeafFromMenu(id): any childless leaf trashes even
+    // with a word (leaf-only, keeps id/word/body/parentId via trashNode);
+    // parent with children refuses with shake + status (structural). Works
+    // for solid + input states, mouse + touch via pointer events; normal
+    // click-to-edit/arrows untouched (hold cancels on move/up, post-hold
+    // click suppressed via capture). Dismiss on outside click/Esc/scroll/
+    // resize/render. No drag exists.
+    let menuNodeId = null;
+    let holdTimer = null;
+    let holdStartX = 0;
+    let holdStartY = 0;
+    let holdNodeEl = null;
+    let holdNodeId = null;
+    let suppressNodeClick = false;
+    function nodeIdForEl(nodeEl) {
+      if (!nodeEl) return null;
+      let nid = (nodeEl.dataset && nodeEl.dataset.nodeId) || null;
+      if (nid && graph.getNode(nid)) return nid;
+      const gi = Number(nodeEl.dataset ? nodeEl.dataset.idx : NaN);
+      if (Number.isFinite(gi)) {
+        const alt = nodeIdAt(gi);
+        if (alt && graph.getNode(alt)) return alt;
+      }
+      return nid || null;
+    }
+    function isNodeMenuOpen() {
+      try {
+        const m = document.getElementById('node-menu');
+        return !!(menuNodeId && m && m.style.display !== 'none');
+      } catch (_) { return false; }
+    }
+    function positionNodeMenu(anchorRect) {
+      try {
+        const menu = document.getElementById('node-menu');
+        if (!menu || !anchorRect) return;
+        if (menu.style.display === 'none') return;
+        const mw = menu.offsetWidth || 140;
+        const mh = menu.offsetHeight || 36;
+        let left = Math.round(anchorRect.left + anchorRect.width / 2 - mw / 2);
+        left = Math.max(8, Math.min(left, window.innerWidth - mw - 8));
+        let top = Math.round(anchorRect.bottom + 8);
+        if (top + mh > window.innerHeight - 8) top = Math.round(anchorRect.top - mh - 8);
+        if (top < 8) top = Math.max(8, window.innerHeight - mh - 8);
+        menu.style.left = left + 'px';
+        menu.style.top = top + 'px';
+      } catch (_) {}
+    }
+    function showNodeMenu(nid, anchorRect) {
+      const menu = document.getElementById('node-menu');
+      const btn = document.getElementById('node-menu-trash');
+      if (!menu || !btn || !nid) return;
+      const nd = graph.getNode(nid);
+      if (!nd || nd.trashed) return;
+      menuNodeId = nid;
+      const label = ((nd.word || '').trim() || 'node');
+      try { btn.setAttribute('aria-label', 'Trash ' + label); } catch (_) {}
+      try { btn.title = 'Trash ' + label; } catch (_) {}
+      menu.style.display = '';
+      requestAnimationFrame(() => positionNodeMenu(anchorRect));
+    }
+    function hideNodeMenu() {
+      const menu = document.getElementById('node-menu');
+      if (menu) menu.style.display = 'none';
+      menuNodeId = null;
+    }
+    function cancelHold() {
+      if (holdTimer) { try { clearTimeout(holdTimer); } catch (_) {} holdTimer = null; }
+      holdNodeEl = null;
+      holdNodeId = null;
+    }
+    function shakeSolid(solid) {
+      if (!solid) return;
+      solid.classList.remove('shake');
+      void solid.offsetWidth;
+      solid.classList.add('shake');
+      setTimeout(() => { try { solid.classList.remove('shake'); } catch (_) {} }, 350);
+    }
+    // Explicit trash via menu (leaf-only, word or empty). Structural parents
+    // (have active children) refuse with shake + status; sole waiting empty
+    // (nothing to keep) keeps validation shake instead of trashing.
+    function trashLeafFromMenu(nid, nodeEl) {
+      const nd = nid ? graph.getNode(nid) : null;
+      if (!nd || nd.trashed) { hideNodeMenu(); return; }
+      if (graph.getChildren(nid).length !== 0) {
+        hideNodeMenu();
+        const input = nodeEl ? nodeEl.querySelector('.root-input') : null;
+        const wrap = nodeEl ? nodeEl.querySelector('.solid-wrap') : null;
+        const solid = nodeEl ? nodeEl.querySelector('.solid-text') : null;
+        const inputVisible = !!(input && (input.classList.contains('show') || input.classList.contains('edit-pop')));
+        const solidVisible = !!(wrap && wrap.classList.contains('show') && solid);
+        if (inputVisible && input) { shakeInput(input); try { input.focus(); } catch (_) {} }
+        else if (solidVisible && solid) { shakeSolid(solid); try { solid.focus({ preventScroll: true }); } catch (_) { try { solid.focus(); } catch (_) {} } }
+        else if (input) { shakeInput(input); }
+        try { status.textContent = "Can't trash: has children"; } catch (_) {}
+        return;
+      }
+      const pid = nd.parentId || null;
+      const hadWord = !!((nd.word || '').trim());
+      if (!hadWord && graph.childCount(pid) <= 1) {
+        hideNodeMenu();
+        const input = nodeEl ? nodeEl.querySelector('.root-input') : null;
+        if (input) { shakeInput(input); try { input.focus(); } catch (_) {} }
+        try { status.textContent = 'Type a word first' + (parentWord() ? ' in ' + parentWord() : ''); } catch (_) {}
+        return;
+      }
+      const keptWord = nd.word || '';
+      const wasCurrent = pid === (currentParentId || null);
+      graph.trashNode(nid);
+      try { console.log('[trash] moved to trash', { id: nid, word: keptWord, parentId: pid, via: 'menu' }); } catch (_) {}
+      hideNodeMenu();
+      if (graph.childCount(pid) === 0 && (pid === null || pid === currentParentId)) {
+        graph.addNode('', pid);
+      }
+      saveGraph();
+      if (wasCurrent) { clampPage(); render(); savePlace(); } else { updateStatus(); }
+      try { status.textContent = 'Moved to trash'; } catch (_) {}
+    }
+    if (nodesEl) {
+      nodesEl.addEventListener('pointerdown', (e) => {
+        try {
+          if (e.button !== undefined && e.button !== 0) return;
+          if (e.isPrimary === false) return;
+          const t = e.target;
+          if (t && t.closest && t.closest('.open-btn')) return;
+          const nodeEl = t && t.closest ? t.closest('.root-node') : null;
+          if (!nodeEl || !nodesEl.contains(nodeEl)) return;
+          const nid = nodeIdForEl(nodeEl);
+          if (!nid || !graph.getNode(nid)) return;
+          cancelHold();
+          holdNodeEl = nodeEl;
+          holdNodeId = nid;
+          try { holdStartX = e.clientX; holdStartY = e.clientY; } catch (_) { holdStartX = 0; holdStartY = 0; }
+          holdTimer = setTimeout(() => {
+            holdTimer = null;
+            try {
+              const r = holdNodeEl ? holdNodeEl.getBoundingClientRect() : null;
+              suppressNodeClick = true;
+              setTimeout(() => { suppressNodeClick = false; }, 600);
+              showNodeMenu(holdNodeId, r);
+            } catch (_) {}
+            holdNodeEl = null;
+            holdNodeId = null;
+          }, 450);
+        } catch (_) {}
+      });
+      nodesEl.addEventListener('contextmenu', (e) => {
+        try {
+          const t = e.target;
+          if (t && t.closest && t.closest('.open-btn')) return;
+          const nodeEl = t && t.closest ? t.closest('.root-node') : null;
+          if (!nodeEl || !nodesEl.contains(nodeEl)) return;
+          e.preventDefault();
+          cancelHold();
+          const nid = nodeIdForEl(nodeEl);
+          if (!nid) return;
+          suppressNodeClick = true;
+          setTimeout(() => { suppressNodeClick = false; }, 600);
+          showNodeMenu(nid, nodeEl.getBoundingClientRect());
+        } catch (_) {}
+      });
+    }
+    window.addEventListener('pointermove', (e) => {
+      if (!holdTimer) return;
+      try {
+        const dx = e.clientX - holdStartX;
+        const dy = e.clientY - holdStartY;
+        if (Math.hypot(dx, dy) > 8) cancelHold();
+      } catch (_) {}
+    }, { passive: true });
+    window.addEventListener('pointerup', () => cancelHold(), { passive: true });
+    window.addEventListener('pointercancel', () => cancelHold(), { passive: true });
+    // Suppress the click-to-edit that would follow a hold (capture runs
+    // before the solid click handler; menu clicks are outside .root-node).
+    document.addEventListener('click', (e) => {
+      if (!suppressNodeClick) return;
+      try {
+        const nodeEl = e.target && e.target.closest ? e.target.closest('.root-node') : null;
+        if (nodeEl) { e.preventDefault(); e.stopPropagation(); }
+      } catch (_) {}
+    }, true);
+    (function wireNodeMenu() {
+      const btn = document.getElementById('node-menu-trash');
+      if (!btn) return;
+      btn.addEventListener('click', (e) => {
+        try { e.stopPropagation(); } catch (_) {}
+        const nid = menuNodeId;
+        if (!nid) { hideNodeMenu(); return; }
+        let nodeEl = null;
+        try { nodeEl = nodesEl.querySelector('.root-node[data-node-id="' + nid + '"]'); } catch (_) {}
+        if (!nodeEl) {
+          try {
+            const list = currentList();
+            const pos = list.findIndex((n) => n.id === nid);
+            if (pos !== -1) nodeEl = nodesEl.querySelector('.root-node[data-idx="' + pos + '"]');
+          } catch (_) {}
+        }
+        trashLeafFromMenu(nid, nodeEl);
+      });
+      document.addEventListener('click', (e) => {
+        if (!isNodeMenuOpen()) return;
+        try {
+          const menu = document.getElementById('node-menu');
+          if (menu && menu.contains(e.target)) return;
+        } catch (_) {}
+        hideNodeMenu();
+      });
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isNodeMenuOpen()) hideNodeMenu();
+      });
+      window.addEventListener('scroll', () => { if (isNodeMenuOpen()) hideNodeMenu(); }, true);
+      window.addEventListener('resize', () => { if (isNodeMenuOpen()) hideNodeMenu(); });
+    })();
 
     // Keyboard up/down navigation (v0.0.30): moves focus across nodes in the
     // current level, turning pages as needed. Scoped to currentParentId via
@@ -2714,6 +2974,7 @@
           push(nodeEl.querySelector('.solid-text'), 'node-' + idx + '-text');
           push(nodeEl.querySelector('.open-btn'), 'open-node-' + idx);
         });
+        push(document.getElementById('node-menu-trash'), 'node-menu-trash');
         return out;
       }
       function showPeek() {
