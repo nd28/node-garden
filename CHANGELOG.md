@@ -3,6 +3,14 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.89] - 2026-09-14 - Fork shared tree to own roots
+
+- `#shared-head` gains `#shared-fork` (`⑂ Fork`, same 24px ghost as Close, auto-width label, `margin-left:auto` so it sits beside Close with the title left) — click imports the shared tree as new root node(s) via `forkShared()` (dupes allowed, no merge/dedupe).
+- `forkShared()` recursively adds the shared root (trimmed word/body kept as shared, no title-case) via `graph.addNode` + `graph.updateBody`, then children with parent links; empty nodes (no word and no body) are skipped with children promoted to the parent level (same as share/reader flatten); all-empty tree keeps the view open with `Nothing to fork`.
+- On success: `saveGraph()`, overlay hidden + `sharedRoot` cleared, hash cleared via `history.replaceState` (no reload), `navigateTo(null, { focusId: forkId })` back to own roots + focuses the forked node, status `Forked to roots` (re-asserted double-`rAF` so `navigateTo`'s `updateStatus` never overwrites it); read-only otherwise preserved (no edits to shared view/paging/close).
+- Alt peek adds `shared-fork` badge (visible only when the shared overlay is open).
+- `v0.0.88` -> `v0.0.89` (`#version-inline` + tip card + header comment, `sw.js` cache `node-garden-v0.0.89`).
+
 ## [v0.0.88] - 2026-09-14 - Book headers on reader + shared pages
 
 - Every reader/shared page gains a small dim caps book-header line at the top (`11px`, `0.08em` tracking, uppercase, `0.55` opacity, ellipsis): reader via `readerBookHeader()` (opened-node title + its parent chain from `graph.pathTo`, joined ` / `), shared via `sharedBookHeader()` (shared root title; the share payload is detached so no outer chain exists).

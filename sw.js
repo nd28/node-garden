@@ -1,5 +1,5 @@
-/* node-garden sw v0.0.88 — cache-first app shell, versioned cache. */
-const CACHE = 'node-garden-v0.0.88';
+/* node-garden sw v0.0.89 — cache-first app shell, versioned cache. */
+const CACHE = 'node-garden-v0.0.89';
 const ASSETS = [
   './',
   'index.html',
