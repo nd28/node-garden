@@ -3,6 +3,13 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.88] - 2026-09-14 - Book headers on reader + shared pages
+
+- Every reader/shared page gains a small dim caps book-header line at the top (`11px`, `0.08em` tracking, uppercase, `0.55` opacity, ellipsis): reader via `readerBookHeader()` (opened-node title + its parent chain from `graph.pathTo`, joined ` / `), shared via `sharedBookHeader()` (shared root title; the share payload is detached so no outer chain exists).
+- Rendered in `renderReaderPage` (`div.reader-bookhead`) + `renderSharedPage` (`div.shared-bookhead`) on every page (including empty states, before blocks/`Nothing to read yet.`/`Nothing shared yet.`); omitted only when untitled/blank to avoid an empty line.
+- Kept: 4 blocks/page paging, prev/next + arrows, close (X/`Esc`/backdrop), mono/darkmode (opacity inherits card color), all else.
+- `v0.0.87` -> `v0.0.88` (`#version-inline` + tip card + header comment, `sw.js` cache `node-garden-v0.0.88`).
+
 ## [v0.0.87] - 2026-09-14 - Share node as URL link + read-only shared view
 
 - `#node-menu` gains `#menu-share` (`🔗 Share`, mono ghost like Read/Trash) beside `#menu-read`; click calls `shareNode(menuNodeId)` (menu stays open, no-op `Nothing to share` on missing/trashed id).

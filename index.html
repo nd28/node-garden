@@ -1,4 +1,4 @@
-<!-- button-app v0.0.87 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.88 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -789,6 +789,17 @@
     word-break: break-word;
   }
   #reader-page .reader-empty { opacity: 0.6; font-size: 0.95rem; }
+  /* Book header (v0.0.88): per-page breadcrumb, small dim caps line. */
+  #reader-page .reader-bookhead {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin: 0 0 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   #reader-foot {
     display: flex;
     flex-direction: row;
@@ -907,6 +918,17 @@
     word-break: break-word;
   }
   #shared-page .shared-empty { opacity: 0.6; font-size: 0.95rem; }
+  /* Book header (v0.0.88): per-page breadcrumb, small dim caps line. */
+  #shared-page .shared-bookhead {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin: 0 0 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   #shared-foot {
     display: flex;
     flex-direction: row;
@@ -1149,7 +1171,7 @@
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
     <p id="status">Waiting for writing...</p>
-    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.87</a></div>
+    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.88</a></div>
   </div>
   <div id="node-menu" role="menu" aria-label="Node menu" style="display:none">
     <button id="menu-read" type="button" role="menuitem" aria-label="Read node" title="Read node">&#x1F4D6;<span>Read</span></button>
@@ -1205,7 +1227,7 @@
     <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
     <div class="tip-divider" aria-hidden="true"></div>
     <div class="tip-credit">made by nd28 with opencode + muse spark 1.3</div>
-    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.87</a></div>
+    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.88</a></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');
@@ -3111,6 +3133,21 @@
     function readerPageCount() {
       return Math.max(1, Math.ceil(readerBlocks.length / READER_PER_PAGE));
     }
+    // Book header (v0.0.88): breadcrumb "<ancestors> / <root>" for the
+    // opened node — root title + its parent chain via graph.pathTo, shown
+    // small dim caps at the top of every reader page. Empty when untitled.
+    function readerBookHeader() {
+      try {
+        const root = readerRootId ? graph.getNode(readerRootId) : null;
+        if (!root) return '';
+        const chain = graph.pathTo(readerRootId)
+          .map((n) => ((n && n.word) || '').trim())
+          .filter(Boolean);
+        const rw = (root.word || '').trim();
+        if (rw) chain.push(rw);
+        return chain.join(' / ');
+      } catch (_) { return ''; }
+    }
     function isReaderOpen() {
       try {
         const r = document.getElementById('reader');
@@ -3131,6 +3168,15 @@
         if (titleEl) titleEl.textContent = root ? ((root.word || '').trim() || 'Reader') : 'Reader';
         if (pageEl) {
           pageEl.innerHTML = '';
+          try {
+            const hb = readerBookHeader();
+            if (hb) {
+              const hd = document.createElement('div');
+              hd.className = 'reader-bookhead';
+              hd.textContent = hb;
+              pageEl.appendChild(hd);
+            }
+          } catch (_) {}
           if (readerBlocks.length === 0) {
             const d = document.createElement('div');
             d.className = 'reader-empty';
@@ -3349,6 +3395,15 @@
     function sharedPageCount() {
       return Math.max(1, Math.ceil(sharedBlocks.length / SHARED_PER_PAGE));
     }
+    // Book header (v0.0.88): shared-tree analogue of readerBookHeader —
+    // the share payload is detached (no outer parents), so the header is
+    // the shared root title, shown small dim caps on every shared page.
+    function sharedBookHeader() {
+      try {
+        if (!sharedRoot) return '';
+        return String(sharedRoot.word || '').trim();
+      } catch (_) { return ''; }
+    }
     function isSharedOpen() {
       try {
         const r = document.getElementById('shared');
@@ -3369,6 +3424,15 @@
         if (titleEl) titleEl.textContent = rw ? 'Shared node \u2014 ' + rw : 'Shared node';
         if (pageEl) {
           pageEl.innerHTML = '';
+          try {
+            const hb = sharedBookHeader();
+            if (hb) {
+              const hd = document.createElement('div');
+              hd.className = 'shared-bookhead';
+              hd.textContent = hb;
+              pageEl.appendChild(hd);
+            }
+          } catch (_) {}
           if (sharedBlocks.length === 0) {
             const d = document.createElement('div');
             d.className = 'shared-empty';
