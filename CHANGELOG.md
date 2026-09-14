@@ -3,6 +3,13 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.81] - 2026-09-14 - two-step confirm cascade trash
+
+- `Graph` gains `getDescendants(id)` / `descendantCount(id)` (active descendants at any depth, walks through trashed intermediates) + `trashCascade(id)` (marks id + all active descendants `trashed=true` with one `trashedAt` stamp, keeps words/bodies/`parentId`s for restore; returns newly-trashed count, `0` when missing/already trashed).
+- Menu trash is now two-step for parents: first click on a node with children shakes (`shakeInput` / `.solid-text.shake`) + `Can't trash: has N children. Click again to trash with children.` (`N` = active descendant count) and arms confirm for that id `~4s` (button label -> `Trash all N?` + red `.danger` light/dark, menu stays open + re-anchored); second click within window cascades via `trashCascade` (`console.log('[trash] cascade ... via:menu-confirm')`, `Moved <total> to trash`, waiting node ensured, `saveGraph` + `render` when current level).
+- Disarm (button back to `Trash`, timer cleared) on outside click / `Esc` (both also `updateStatus()` to clear the warning), timeout (`updateStatus()`), new menu open, `hideNodeMenu` (so scroll/resize/`render` also disarm); leaf trash stays single-click (`disarm` first, `Moved to trash` unchanged), sole waiting empty keeps `Type a word first` shake.
+- `v0.0.80` -> `v0.0.81` (`#version-inline` + tip card + header comment).
+
 ## [v0.0.80] - 2026-09-14 - hold/right-click node menu with trash
 
 - New `#node-menu` floating menu anchored on `.root-node` (centered below node, flips above when tight, viewport-clamped, `z-index:6000`, mono pill `12px` radius + shadow like crumbs): single mono ghost `#node-menu-trash` button (bin icon `🗑` + `Trash` label, `12px` page font, hover `#eee`/`#222` dark, `aria-label`/`title` per node word).

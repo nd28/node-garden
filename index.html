@@ -1,4 +1,4 @@
-<!-- button-app v0.0.80 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.81 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -706,6 +706,9 @@
   }
   #node-menu-trash:hover { background: #eee; }
   #node-menu-trash:active { transform: scale(0.94); }
+  /* Trash confirm cascade (v0.0.81): second-click "Trash all N?" danger state. */
+  #node-menu-trash.danger { background: #c00; border-color: #c00; color: #fff; font-weight: 700; }
+  #node-menu-trash.danger:hover { background: #a00; }
   /* Solid shake (v0.0.80): reuse inputShake translate so structural refuse
      on a solid leaf is visible (input is hidden in solid state). */
   .solid-text.shake { animation: inputShake 0.3s ease; }
@@ -876,6 +879,8 @@
     #node-menu { background: #000; border-color: #fff; box-shadow: 0 8px 24px rgba(255,255,255,0.15); }
     #node-menu-trash { background: transparent; color: #fff; border-color: #fff; }
     #node-menu-trash:hover { background: #222; }
+    #node-menu-trash.danger { background: #c00; border-color: #c00; color: #fff; font-weight: 700; }
+    #node-menu-trash.danger:hover { background: #a00; }
     #status { color: #999; background: rgba(255,255,255,0.06); }
     #version-inline { color: #888; }
     #keys-tip-btn { background: transparent; color: #fff; border-color: #fff; }
@@ -905,7 +910,7 @@
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
     <p id="status">Waiting for writing...</p>
-    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.80</a></div>
+    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.81</a></div>
   </div>
   <div id="fake-caret" aria-hidden="true"></div>
   <div id="node-menu" role="menu" aria-label="Node menu" style="display:none">
@@ -932,7 +937,7 @@
     <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
     <div class="tip-divider" aria-hidden="true"></div>
     <div class="tip-credit">made by nd28 with opencode + muse spark 1.3</div>
-    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.80</a></div>
+    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.81</a></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');
@@ -1396,6 +1401,58 @@
         n.trashed = true;
         n.trashedAt = Date.now();
         return true;
+      }
+      // Active descendants at any depth (v0.0.81, excludes the node itself,
+      // excludes already-trashed; still walks through trashed intermediates
+      // so deeper active nodes are reached).
+      getDescendants(id) {
+        if (!id || !this.nodes.has(id)) return [];
+        const out = [];
+        const doomed = new Set([id]);
+        let grew = true;
+        while (grew) {
+          grew = false;
+          for (const oid of this.order) {
+            if (doomed.has(oid)) continue;
+            const nn = this.nodes.get(oid);
+            if (!nn || !nn.parentId || !doomed.has(nn.parentId)) continue;
+            doomed.add(oid);
+            if (!nn.trashed) out.push(nn);
+            grew = true;
+          }
+        }
+        return out;
+      }
+      descendantCount(id) { return this.getDescendants(id).length; }
+      // Cascade trash (v0.0.81, two-step confirm in menu): marks id + all
+      // active descendants trashed (keeps words/bodies/parentIds for
+      // restore), same trashedAt stamp. Returns newly-trashed count
+      // (0 when missing/already trashed, else >=1).
+      trashCascade(id) {
+        const n = id ? this.nodes.get(id) : null;
+        if (!n || n.trashed) return 0;
+        const doomed = new Set([id]);
+        let grew = true;
+        while (grew) {
+          grew = false;
+          for (const [nid, nn] of this.nodes) {
+            if (!doomed.has(nid) && nn.parentId && doomed.has(nn.parentId)) {
+              doomed.add(nid);
+              grew = true;
+            }
+          }
+        }
+        const now = Date.now();
+        let count = 0;
+        for (const d of doomed) {
+          const nd = this.nodes.get(d);
+          if (nd && !nd.trashed) {
+            nd.trashed = true;
+            nd.trashedAt = now;
+            count++;
+          }
+        }
+        return count;
       }
       // Future restore (no UI yet): untrash, keep parentId when it still
       // exists else re-root to null. Returns false when missing/dangling.
@@ -2496,16 +2553,19 @@
       if (page < pages.length - 1) { page++; render(); savePlace(); }
     });
 
-    // Node context menu (v0.0.80): long-press/hold (~450ms pointerdown without
-    // move) or right-click on .root-node shows a small floating #node-menu
-    // anchored on the node with a mono ghost trash button (bin icon + Trash).
-    // Click trash -> trashLeafFromMenu(id): any childless leaf trashes even
-    // with a word (leaf-only, keeps id/word/body/parentId via trashNode);
-    // parent with children refuses with shake + status (structural). Works
-    // for solid + input states, mouse + touch via pointer events; normal
-    // click-to-edit/arrows untouched (hold cancels on move/up, post-hold
-    // click suppressed via capture). Dismiss on outside click/Esc/scroll/
-    // resize/render. No drag exists.
+    // Node context menu (v0.0.80 hold menu, v0.0.81 two-step cascade): long-press/hold
+    // (~450ms pointerdown without move) or right-click on .root-node shows a
+    // small floating #node-menu anchored on the node with a mono ghost trash
+    // button (bin icon + Trash). Click trash -> trashLeafFromMenu(id): any
+    // childless leaf trashes even with a word (single-click, keeps
+    // id/word/body/parentId via trashNode); parent with children first
+    // refuses with shake + "Can't trash: has N children. Click again..."
+    // and arms confirm ~4s ("Trash all N?" + .danger, menu stays open),
+    // second click cascades via trashCascade (trash flag subtree, keep
+    // words/parent links). Works for solid + input states, mouse + touch
+    // via pointer events; normal click-to-edit/arrows untouched (hold cancels
+    // on move/up, post-hold click suppressed via capture). Dismiss + disarm
+    // on outside click/Esc/timeout/scroll/resize/render. No drag exists.
     let menuNodeId = null;
     let holdTimer = null;
     let holdStartX = 0;
@@ -2546,20 +2606,77 @@
         menu.style.top = top + 'px';
       } catch (_) {}
     }
+    // Two-step confirm cascade (v0.0.81): first Trash click on a node with
+    // active descendants shakes + warns + arms confirm for that id ~4s
+    // (button label -> "Trash all N?" + .danger, menu stays open); second
+    // click within window cascades via trashCascade. Click elsewhere / Esc /
+    // timeout / new menu / hide disarms (button back to "Trash").
+    let confirmTrashId = null;
+    let confirmTrashTimer = null;
+    let confirmTrashN = 0;
+    function trashBtnEls() {
+      try {
+        const btn = document.getElementById('node-menu-trash');
+        const labelEl = btn ? btn.querySelector('span') : null;
+        return { btn, labelEl };
+      } catch (_) { return { btn: null, labelEl: null }; }
+    }
+    function setTrashBtnNormal(nd) {
+      const { btn, labelEl } = trashBtnEls();
+      if (!btn) return;
+      try { btn.classList.remove('danger'); } catch (_) {}
+      try { if (labelEl) labelEl.textContent = 'Trash'; } catch (_) {}
+      const label = (nd && (nd.word || '').trim()) || 'node';
+      try { btn.setAttribute('aria-label', 'Trash ' + label); } catch (_) {}
+      try { btn.title = 'Trash ' + label; } catch (_) {}
+    }
+    function armTrashConfirm(nid, n) {
+      disarmTrashConfirm();
+      confirmTrashId = nid;
+      confirmTrashN = n;
+      const { btn, labelEl } = trashBtnEls();
+      if (btn) {
+        try { btn.classList.add('danger'); } catch (_) {}
+        try { if (labelEl) labelEl.textContent = 'Trash all ' + n + '?'; } catch (_) {}
+        try { btn.setAttribute('aria-label', 'Trash all ' + n + ' with children'); } catch (_) {}
+        try { btn.title = 'Trash all ' + n + ' with children'; } catch (_) {}
+      }
+      confirmTrashTimer = setTimeout(() => {
+        confirmTrashTimer = null;
+        const stillArmed = confirmTrashId;
+        disarmTrashConfirm();
+        if (stillArmed && isNodeMenuOpen()) { try { updateStatus(); } catch (_) {} }
+      }, 4000);
+    }
+    function disarmTrashConfirm() {
+      if (confirmTrashTimer) { try { clearTimeout(confirmTrashTimer); } catch (_) {} confirmTrashTimer = null; }
+      confirmTrashId = null;
+      confirmTrashN = 0;
+      try {
+        const nd = menuNodeId ? graph.getNode(menuNodeId) : null;
+        setTrashBtnNormal(nd || undefined);
+      } catch (_) {
+        try {
+          const { btn, labelEl } = trashBtnEls();
+          if (btn) btn.classList.remove('danger');
+          if (labelEl) labelEl.textContent = 'Trash';
+        } catch (_) {}
+      }
+    }
     function showNodeMenu(nid, anchorRect) {
+      disarmTrashConfirm();
       const menu = document.getElementById('node-menu');
       const btn = document.getElementById('node-menu-trash');
       if (!menu || !btn || !nid) return;
       const nd = graph.getNode(nid);
       if (!nd || nd.trashed) return;
       menuNodeId = nid;
-      const label = ((nd.word || '').trim() || 'node');
-      try { btn.setAttribute('aria-label', 'Trash ' + label); } catch (_) {}
-      try { btn.title = 'Trash ' + label; } catch (_) {}
+      setTrashBtnNormal(nd);
       menu.style.display = '';
       requestAnimationFrame(() => positionNodeMenu(anchorRect));
     }
     function hideNodeMenu() {
+      disarmTrashConfirm();
       const menu = document.getElementById('node-menu');
       if (menu) menu.style.display = 'none';
       menuNodeId = null;
@@ -2576,14 +2693,34 @@
       solid.classList.add('shake');
       setTimeout(() => { try { solid.classList.remove('shake'); } catch (_) {} }, 350);
     }
-    // Explicit trash via menu (leaf-only, word or empty). Structural parents
-    // (have active children) refuse with shake + status; sole waiting empty
-    // (nothing to keep) keeps validation shake instead of trashing.
+    // Explicit trash via menu (v0.0.81 two-step cascade, leaf single-click).
+    // Leaf (zero active descendants): trash immediately via trashNode.
+    // Parent (has active descendants): first click shakes + warns
+    // "Can't trash: has N children. Click again to trash with children.",
+    // arms confirm ~4s ("Trash all N?" + danger, menu stays open); second
+    // click within window cascades via trashCascade (trash flag all, keep
+    // words/parent links). Sole waiting empty keeps validation shake.
     function trashLeafFromMenu(nid, nodeEl) {
       const nd = nid ? graph.getNode(nid) : null;
       if (!nd || nd.trashed) { hideNodeMenu(); return; }
-      if (graph.getChildren(nid).length !== 0) {
-        hideNodeMenu();
+      const descN = graph.descendantCount(nid);
+      if (descN !== 0 || graph.getChildren(nid).length !== 0) {
+        if (confirmTrashId === nid) {
+          const pid = nd.parentId || null;
+          const keptWord = nd.word || '';
+          const wasCurrent = pid === (currentParentId || null);
+          const total = graph.trashCascade(nid);
+          try { console.log('[trash] cascade to trash', { id: nid, word: keptWord, parentId: pid, count: total, via: 'menu-confirm' }); } catch (_) {}
+          hideNodeMenu();
+          if (graph.childCount(pid) === 0 && (pid === null || pid === currentParentId)) {
+            graph.addNode('', pid);
+          }
+          saveGraph();
+          if (wasCurrent) { clampPage(); render(); savePlace(); } else { updateStatus(); }
+          try { status.textContent = 'Moved ' + total + ' to trash'; } catch (_) {}
+          return;
+        }
+        const n = descN !== 0 ? descN : graph.getChildren(nid).length;
         const input = nodeEl ? nodeEl.querySelector('.root-input') : null;
         const wrap = nodeEl ? nodeEl.querySelector('.solid-wrap') : null;
         const solid = nodeEl ? nodeEl.querySelector('.solid-text') : null;
@@ -2592,9 +2729,17 @@
         if (inputVisible && input) { shakeInput(input); try { input.focus(); } catch (_) {} }
         else if (solidVisible && solid) { shakeSolid(solid); try { solid.focus({ preventScroll: true }); } catch (_) { try { solid.focus(); } catch (_) {} } }
         else if (input) { shakeInput(input); }
-        try { status.textContent = "Can't trash: has children"; } catch (_) {}
+        try { status.textContent = "Can't trash: has " + n + " children. Click again to trash with children."; } catch (_) {}
+        armTrashConfirm(nid, n);
+        try {
+          const menu = document.getElementById('node-menu');
+          if (menu && menu.style.display !== 'none' && nodeEl) {
+            try { positionNodeMenu(nodeEl.getBoundingClientRect()); } catch (_) {}
+          }
+        } catch (_) {}
         return;
       }
+      disarmTrashConfirm();
       const pid = nd.parentId || null;
       const hadWord = !!((nd.word || '').trim());
       if (!hadWord && graph.childCount(pid) <= 1) {
@@ -2703,10 +2848,16 @@
           const menu = document.getElementById('node-menu');
           if (menu && menu.contains(e.target)) return;
         } catch (_) {}
+        const wasArmed = !!confirmTrashId;
         hideNodeMenu();
+        if (wasArmed) { try { updateStatus(); } catch (_) {} }
       });
       window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && isNodeMenuOpen()) hideNodeMenu();
+        if (e.key === 'Escape' && isNodeMenuOpen()) {
+          const wasArmed = !!confirmTrashId;
+          hideNodeMenu();
+          if (wasArmed) { try { updateStatus(); } catch (_) {} }
+        }
       });
       window.addEventListener('scroll', () => { if (isNodeMenuOpen()) hideNodeMenu(); }, true);
       window.addEventListener('resize', () => { if (isNodeMenuOpen()) hideNodeMenu(); });
