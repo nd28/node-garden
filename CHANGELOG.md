@@ -3,6 +3,13 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.82] - 2026-09-14 - remove thick fake caret, restore native caret
+
+- Removes thick `4px` `#fake-caret` block: deletes `#fake-caret` div + `#fake-caret`/`.on`/`caretBlink` CSS (light + dark `#fff` override) + JS (`fakeCaret`, `caretMeas`, `caretTextWidth`, `caretPosWrapped`, `updateCaret`, `hideCaretDelayed`, `caretMirror` + all wirings: `keyup`/`click`/`scroll` caret-only listeners, `input`/`focus`/`blur`/`resize`/`render`/`focusFirstVisible`/`focusById`/`showInput`/`showSolidNow` caret calls, font/spacing/leading/weight/size `updateCaret` re-runs, shake/reject `updateCaret` refreshes).
+- Restores native caret: removes `input.style.caretColor = 'transparent'` override; native caret shows via existing CSS `.root-input { caret-color:#000 }` light / `#fff` dark (no new style needed).
+- Kept: input focus behavior (`autoGrow` + `updateStatus` on focus/show/render), `autoGrow`, title-case, `isValidWord`/`shakeInput` validation, Alt peek (no `fake-caret` target existed), all else.
+- `v0.0.81` -> `v0.0.82` (`#version-inline` + tip card + header comment).
+
 ## [v0.0.81] - 2026-09-14 - two-step confirm cascade trash
 
 - `Graph` gains `getDescendants(id)` / `descendantCount(id)` (active descendants at any depth, walks through trashed intermediates) + `trashCascade(id)` (marks id + all active descendants `trashed=true` with one `trashedAt` stamp, keeps words/bodies/`parentId`s for restore; returns newly-trashed count, `0` when missing/already trashed).

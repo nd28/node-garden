@@ -1,4 +1,4 @@
-<!-- button-app v0.0.81 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.82 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -110,24 +110,6 @@
     font-style: normal;
   }
   #nodes.show-4 .root-input { font-size: calc(var(--node-size) * 0.8); }
-  /* Thick fake caret (4px): native caret hidden via JS -> transparent,
-     this block bar follows the true caret position. Shared one. */
-  #fake-caret {
-    position: fixed;
-    display: none;
-    width: 4px;
-    height: 38px;
-    background: #000;
-    pointer-events: none;
-    z-index: 10;
-    animation: caretBlink 1.06s steps(1) infinite;
-  }
-  #fake-caret.on { display: block; }
-  @keyframes caretBlink {
-    0%, 45% { opacity: 1; }
-    50%, 95% { opacity: 0; }
-    100% { opacity: 1; }
-  }
   .root-input.show {
     display: block;
     animation: grow 0.3s ease forwards;
@@ -808,7 +790,6 @@
     #round-btn:hover { background: #ddd; }
     .root-input { color: #fff; caret-color: #fff; }
     .root-input::placeholder { color: #666; opacity: 0.35; font-style: normal; }
-    #fake-caret { background: #fff; }
     .ripple { background: rgba(255,255,255,0.18); }
     .solid-text {
       color: #fff;
@@ -910,9 +891,8 @@
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
     <p id="status">Waiting for writing...</p>
-    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.81</a></div>
+    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.82</a></div>
   </div>
-  <div id="fake-caret" aria-hidden="true"></div>
   <div id="node-menu" role="menu" aria-label="Node menu" style="display:none">
     <button id="node-menu-trash" type="button" role="menuitem" aria-label="Trash node" title="Trash node">&#x1F5D1;<span>Trash</span></button>
   </div>
@@ -937,7 +917,7 @@
     <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
     <div class="tip-divider" aria-hidden="true"></div>
     <div class="tip-credit">made by nd28 with opencode + muse spark 1.3</div>
-    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.81</a></div>
+    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.82</a></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');
@@ -945,8 +925,6 @@
     const pageUp = document.getElementById('page-up');
     const pageDown = document.getElementById('page-down');
     const status = document.getElementById('status');
-    const fakeCaret = document.getElementById('fake-caret');
-    const caretMeas = document.createElement('canvas').getContext('2d');
     const LS_GRAPH = 'root-graph-json';
     const LS_NEW = 'root-nodes-json';
     const LS_OLD = 'root-node-word';
@@ -1012,8 +990,7 @@
 
     // Font trial switcher (v0.0.55 page-wide, weight-lazy): cycles page font
     // stack for body + .root-input + .solid-text + buttons/status/crumbs
-    // (shared var(--page-font) page-wide + var(--node-font) kept in sync so
-    // the fake caret stays aligned via getComputedStyle measurement). No font
+    // (shared var(--page-font) page-wide + var(--node-font) kept in sync). No font
     // CSS in <head>: initial paint is System UI, zero webfonts fetched
     // upfront. First cycle to a webfont injects only the active weight's
     // sheet (css2 single wght, display=swap) + on-demand preconnect; cycling
@@ -1117,7 +1094,6 @@
               document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
             try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
             } catch (_) {}
-            updateCaret();
           })).catch(() => {});
         }
       } catch (_) {}
@@ -1126,7 +1102,6 @@
           document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
             try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
         } catch (_) {}
-        updateCaret();
       });
     }
     ensureWebfont(fontIdx);
@@ -1161,7 +1136,6 @@
           document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
             try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
         } catch (_) {}
-        updateCaret();
       });
     }
     try { document.documentElement.style.setProperty('--node-spacing', NODE_SPACINGS[spacingIdx]); } catch (_) {}
@@ -1194,7 +1168,6 @@
           document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
             try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
         } catch (_) {}
-        updateCaret();
       });
     }
     try { document.documentElement.style.setProperty('--node-leading', NODE_LEADINGS[leadingIdx]); } catch (_) {}
@@ -1225,7 +1198,6 @@
               document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
             try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
             } catch (_) {}
-            updateCaret();
           })).catch(() => {});
         }
       } catch (_) {}
@@ -1234,7 +1206,6 @@
           document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
             try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
         } catch (_) {}
-        updateCaret();
       });
     }
     try { document.documentElement.style.setProperty('--node-weight', NODE_WEIGHTS[weightIdx]); } catch (_) {}
@@ -1242,8 +1213,7 @@
     // Font-size cycler (v0.0.58): cycles node size for .root-input +
     // .solid-text via shared var(--node-size). 4 steps, persists in
     // 'node-size-idx', status flashes "Size <val>". show-4 compact scales
-    // proportionally via calc(var(--node-size)*0.8). Caret height follows
-    // computed size (updateCaret reads computed fontSize/lineHeight).
+    // proportionally via calc(var(--node-size)*0.8).
     const LS_SIZE = 'node-size-idx';
     const NODE_SIZES = ['1.4rem', '1.6rem', '2rem', '2.6rem'];
     let sizeIdx = 2;
@@ -1269,7 +1239,6 @@
           document.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
             try { const _nb = document.getElementById('node-body'); if (_nb && _nb.style.display !== 'none') autoGrow(_nb); } catch (_) {}
         } catch (_) {}
-        updateCaret();
       });
     }
     try { document.documentElement.style.setProperty('--node-size', NODE_SIZES[sizeIdx]); } catch (_) {}
@@ -1290,20 +1259,17 @@
       void input.offsetWidth;
       input.classList.add('shake');
       setTimeout(() => { input.classList.remove('shake'); }, 350);
-      requestAnimationFrame(updateCaret);
     }
     function rejectEmpty(input) {
       shakeInput(input);
       try { input.focus(); } catch (_) {}
       const pw = parentWord();
       status.textContent = 'Type a word first' + (pw ? ' in ' + pw : '');
-      requestAnimationFrame(updateCaret);
     }
     function rejectTooLong(input) {
       shakeInput(input);
       try { input.focus(); } catch (_) {}
       status.textContent = 'Keep it under 60 chars';
-      requestAnimationFrame(updateCaret);
     }
     function newNodeId() {
       try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (_) {}
@@ -1848,7 +1814,6 @@
       return pages;
     }
 
-    // Shared thick (4px) fake caret for whichever .root-input is focused.
     // Textarea auto-grow (v0.0.43 wrap): single-line words, soft-wrapped
     // display. Height follows scrollHeight so no scrollbar appears.
     function autoGrow(el) {
@@ -1857,89 +1822,6 @@
         el.style.height = 'auto';
         el.style.height = el.scrollHeight + 'px';
       } catch (_) {}
-    }
-    function caretTextWidth(input, text) {
-      const cs = getComputedStyle(input);
-      caretMeas.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
-      const w = caretMeas.measureText(text || '').width;
-      const ls = parseFloat(cs.letterSpacing) || 0;
-      return w + ls * String(text || '').length;
-    }
-    // Hidden mirror for soft-wrapped caret position (v0.0.43): same width,
-    // font, alignment and break rules as the textarea; marker at the caret
-    // gives the wrapped line x/y. Falls back to single-line math.
-    const caretMirror = document.createElement('div');
-    caretMirror.setAttribute('aria-hidden', 'true');
-    caretMirror.style.cssText = 'position:fixed;top:-9999px;left:-9999px;visibility:hidden;pointer-events:none;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;padding:0;border:none;';
-    try { document.body.appendChild(caretMirror); } catch (_) {}
-    function caretPosWrapped(input, pos) {
-      try {
-        const cs = getComputedStyle(input);
-        const w = input.clientWidth;
-        if (!w) return null;
-        caretMirror.style.width = w + 'px';
-        caretMirror.style.fontFamily = cs.fontFamily;
-        caretMirror.style.fontSize = cs.fontSize;
-        caretMirror.style.fontWeight = cs.fontWeight;
-        caretMirror.style.lineHeight = cs.lineHeight;
-        caretMirror.style.letterSpacing = cs.letterSpacing;
-        caretMirror.style.textAlign = cs.textAlign;
-        caretMirror.textContent = '';
-        const val = input.value || '';
-        const pre = document.createTextNode(val.slice(0, pos));
-        const marker = document.createElement('span');
-        marker.textContent = '\u200B';
-        const post = document.createTextNode(val.slice(pos));
-        caretMirror.appendChild(pre);
-        caretMirror.appendChild(marker);
-        caretMirror.appendChild(post);
-        return { x: marker.offsetLeft, y: marker.offsetTop, h: marker.offsetHeight || null };
-      } catch (_) { return null; }
-    }
-    function updateCaret() {
-      const input = document.activeElement;
-      if (!input || !input.classList || !input.classList.contains('root-input')) {
-        fakeCaret.classList.remove('on');
-        return;
-      }
-      const visible = input.classList.contains('show') || input.classList.contains('edit-pop');
-      if (!visible) { fakeCaret.classList.remove('on'); return; }
-      let pos = 0;
-      try { pos = input.selectionStart || 0; } catch (_) { pos = (input.value || '').length; }
-      try { if (input.selectionStart !== input.selectionEnd) { fakeCaret.classList.remove('on'); return; } } catch (_) {}
-      const rect = input.getBoundingClientRect();
-      if (rect.width === 0) { fakeCaret.classList.remove('on'); return; }
-      const cs = getComputedStyle(input);
-      const fs = parseFloat(cs.fontSize) || 32;
-      const lh = parseFloat(cs.lineHeight) || fs * 1.3 || 34;
-      const h = Math.round(lh * 0.85) || 34;
-      const wrapped = caretPosWrapped(input, pos);
-      if (wrapped) {
-        const top = rect.top + wrapped.y - (input.scrollTop || 0);
-        fakeCaret.style.height = h + 'px';
-        fakeCaret.style.left = Math.round(rect.left + wrapped.x - 2) + 'px';
-        fakeCaret.style.top = Math.round(top + ((wrapped.h || lh) - h) / 2) + 'px';
-        fakeCaret.classList.add('on');
-        return;
-      }
-      const val = input.value || '';
-      const fullW = caretTextWidth(input, val);
-      const preW = caretTextWidth(input, val.slice(0, pos));
-      const clientW = input.clientWidth || rect.width;
-      let x;
-      if (fullW <= clientW) {
-        x = rect.left + (rect.width - fullW) / 2 + preW;
-      } else {
-        x = rect.left + preW - (input.scrollLeft || 0);
-      }
-      fakeCaret.style.height = h + 'px';
-      fakeCaret.style.left = Math.round(x - 2) + 'px';
-      fakeCaret.style.top = Math.round(rect.top + (rect.height - h) / 2) + 'px';
-      fakeCaret.classList.add('on');
-    }
-    function hideCaretDelayed() {
-      fakeCaret.classList.remove('on');
-      setTimeout(() => requestAnimationFrame(updateCaret), 320);
     }
 
     const crumbsEl = document.getElementById('crumbs');
@@ -2154,7 +2036,6 @@
       input.focus();
       try { input.setSelectionRange(input.value.length, input.value.length); } catch (_) {}
       autoGrow(input);
-      hideCaretDelayed();
       updateStatus();
     }
 
@@ -2187,7 +2068,6 @@
       const solid = nodeEl.querySelector('.solid-text');
       const ripple = nodeEl.querySelector('.ripple');
       const openBtn = nodeEl.querySelector('.open-btn');
-      fakeCaret.classList.remove('on');
       input.classList.remove('show');
       input.classList.remove('edit-pop');
       input.classList.remove('fade-blur-out');
@@ -2267,7 +2147,6 @@
       input.maxLength = MAX_WORD_LEN;
       input.setAttribute('aria-label', 'Node text');
       input.value = getWordAt(idx) || '';
-      input.style.caretColor = 'transparent';
 
       const wrap = document.createElement('div');
       wrap.className = 'solid-wrap';
@@ -2297,12 +2176,8 @@
         input.value = toTitleCase(String(input.value).replace(/[\r\n]+/g, ' '));
         try { input.setSelectionRange(start, end); } catch (_) {}
         autoGrow(input);
-        requestAnimationFrame(updateCaret);
       });
-      input.addEventListener('keyup', () => requestAnimationFrame(updateCaret));
-      input.addEventListener('click', () => requestAnimationFrame(updateCaret));
-      input.addEventListener('focus', () => { autoGrow(input); requestAnimationFrame(updateCaret); updateStatus(); });
-      input.addEventListener('scroll', () => requestAnimationFrame(updateCaret));
+      input.addEventListener('focus', () => { autoGrow(input); updateStatus(); });
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -2321,7 +2196,6 @@
         }
       });
       input.addEventListener('blur', () => {
-        fakeCaret.classList.remove('on');
         if (nodeEl._solidifying) return;
         if (wrap.classList.contains('show')) return;
         if (!input.classList.contains('show') && !input.classList.contains('edit-pop')) return;
@@ -2419,7 +2293,6 @@
         if (input) {
           try { autoGrow(input); } catch (_) {}
           try { input.focus(); } catch (_) {}
-          try { hideCaretDelayed(); } catch (_) {}
           return true;
         }
       }
@@ -2429,9 +2302,7 @@
         : firstEl.querySelector('.solid-text');
       if (t) {
         try { t.focus({ preventScroll: true }); } catch (_) { try { t.focus(); } catch (_) {} }
-        if (t.classList && t.classList.contains('root-input')) {
-          try { requestAnimationFrame(updateCaret); } catch (_) {}
-        } else { try { updateStatus(); } catch (_) {} }
+        try { updateStatus(); } catch (_) {}
         return document.activeElement === t;
       }
       return false;
@@ -2459,7 +2330,6 @@
           if (input && input.classList.contains('show')) {
             autoGrow(input);
             input.focus();
-            hideCaretDelayed();
           }
         }
       } else if (focusIdx === 'first-empty-visible') {
@@ -2900,8 +2770,7 @@
         if (!t) { render(); continue; }
         try { t.focus({ preventScroll: true }); } catch (_) { t.focus(); }
         if (document.activeElement === t) {
-          if (t.classList && t.classList.contains('root-input')) requestAnimationFrame(updateCaret);
-          else updateStatus();
+          updateStatus();
           return true;
         }
         // Focus lost to a blur-triggered prune+render; retry by id.
@@ -3010,7 +2879,6 @@
         nodesEl.querySelectorAll('.root-input.show, .root-input.edit-pop').forEach(autoGrow);
         if (typeof nodeBody !== 'undefined' && nodeBody && nodeBody.style.display !== 'none') autoGrow(nodeBody);
       } catch (_) {}
-      updateCaret();
     });
 
     // Add-node button bounce: newborn exploring within 3px radius every ~800ms.
