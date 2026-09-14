@@ -3,6 +3,15 @@
 All notable changes to button-app. Format: `## [vX] - YYYY-MM-DD - changes`.
 On each version bump: update `#version-inline` + tip card version in `index.html` + add entry here.
 
+## [v0.0.85] - 2026-09-14 - Installable PWA (manifest + service worker)
+
+- New `manifest.webmanifest`: `name node-garden`, `short_name Nodes`, `start_url .` + `scope .` (subpath-safe for GitHub Pages `/node-garden/`), `display standalone`, `background_color #ffffff` + `theme_color #000000`, icons `icon-192.png` + `icon-512.png` (`any maskable`, full-bleed black + white `+`) + `icon.svg` (`any` fallback).
+- New `icon.svg` / `icon-192.png` / `icon-512.png` (mono black square + white `+`, generated offline via PIL).
+- `index.html` head: `<link rel=manifest>`, `<meta theme-color #000000>`, `mobile-web-app-capable` + `apple-mobile-web-app-capable` (+ `black-translucent` status bar), `apple-touch-icon -> icon-192.png`; registers `./sw.js` on load when `serviceWorker` available.
+- New `sw.js`: versioned cache `node-garden-v0.0.85`, precaches app shell (`./`, `index.html`, manifest, icons, `CHANGELOG.md`), `skipWaiting` + old-cache purge on activate + `clients.claim`, cache-first GET with same-origin runtime caching and `index.html` offline fallback.
+- `server.py`: `PWAHandler` maps `.webmanifest -> application/manifest+json` (plus `mimetypes.add_type`) so local install testing serves the right content-type.
+- `v0.0.84` -> `v0.0.85` (`#version-inline` + tip card + header comment).
+
 ## [v0.0.84] - 2026-09-14 - Back/Left auto-focuses the node just exited
 
 - `navigateTo(parentId, opts)` gains `opts.focusId` (exited child id): after navigating to the parent level it finds the id's index in the new `currentList()`, pages to it (`pageForPos` + `clampPage`), `render(pos)` (empty exits focus their input synchronously), then `rAF` `focusById(focusId, pos)` focuses its solid (`focusableForNodeEl`, `preventScroll`) or input if empty, paging again if a blur-prune shifted indices; unknown id falls back to `focusFirstVisible`.

@@ -1,9 +1,15 @@
-<!-- button-app v0.0.84 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
+<!-- button-app v0.0.85 — on version bump: update #version-inline + tip card version + add entry to CHANGELOG.md -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#000000" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="apple-touch-icon" href="icon-192.png" />
 <title>Round Button</title>
 <style>
   :root { color-scheme: light dark; --page-font: system-ui, -apple-system, sans-serif; --node-font: system-ui, -apple-system, sans-serif; --node-spacing: 0.04em; --node-leading: 1.3; --node-weight: 400; --node-size: 2rem; }
@@ -891,7 +897,7 @@
       <button id="crumb-toggle-btn" aria-label="Toggle breadcrumbs" title="Toggle breadcrumbs" aria-haspopup="true" aria-expanded="false">&#8943;<span id="crumb-count" aria-hidden="true">1</span></button>
     </div>
     <p id="status">Waiting for writing...</p>
-    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.84</a></div>
+    <div id="version-inline"><a href="CHANGELOG.md" title="Changelog">v0.0.85</a></div>
   </div>
   <div id="node-menu" role="menu" aria-label="Node menu" style="display:none">
     <button id="node-menu-trash" type="button" role="menuitem" aria-label="Trash node" title="Trash node">&#x1F5D1;<span>Trash</span></button>
@@ -917,7 +923,7 @@
     <div><span class="tip-key">Esc</span> <span class="tip-def">— close</span></div>
     <div class="tip-divider" aria-hidden="true"></div>
     <div class="tip-credit">made by nd28 with opencode + muse spark 1.3</div>
-    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.84</a></div>
+    <div class="tip-version"><a href="CHANGELOG.md" title="Changelog">v0.0.85</a></div>
   </div>
   <script>
     const nodesEl = document.getElementById('nodes');
@@ -3116,6 +3122,14 @@
       }
       poll().then(() => setInterval(poll, 1000));
     })();
+  </script>
+  <script>
+    // PWA (v0.0.85): register service worker for installability + offline shell.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
   </script>
 </body>
 </html>
